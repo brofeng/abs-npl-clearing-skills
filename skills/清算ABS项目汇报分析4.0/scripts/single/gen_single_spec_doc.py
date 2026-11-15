@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+"""从 golden/spec.json 生成 references/15-单项目八节版式规格.md（勿手改产出）
+
+用法：python gen_single_spec_doc.py
+"""
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SKILL = os.path.dirname(os.path.dirname(HERE))
+SPEC = os.path.join(SKILL, "assets", "single", "golden", "spec.json")
+OUT = os.path.join(SKILL, "references", "15-单项目八节版式规格.md")
+SHA = os.path.join(SKILL, "assets", "single", "golden", "report.sha256")
+
+
+def main():
+    d = json.load(open(SPEC, encoding="utf-8"))
+    hline = open(SHA, encoding="utf-8").read().split()
+    sha, size = hline[0], int(hline[1])
+    L = []
+    A = L.append
+    A("# 15 · 单项目八节版式规格（**自动生成，勿手改**）")
+    A("")
+    A("> 本文件由 `scripts/single/gen_single_spec_doc.py` 从 `assets/single/golden/spec.json` 生成。")
+    A("> 该 JSON 是**唯一权威**：由无头浏览器按「全部 fold 展开 + 禁用过渡 + 视口 1600×1400」")
+    A("> 实测采集（每节的高度 / 卡片 / 图块 / KPI 格 / 表格 / 表行 / SVG / 明细块 / 渲染后全文）。")
+    A("> **任何版式或文案改动必须同时更新基线**，否则 G2 门禁会失败并指出差在哪一节哪一行。")
+    A("")
+    A("## 0. 基线身份")
+    A("")
+    A("| 项 | 值 |")
+    A("|---|---|")
+    A(f"| 产物 SHA256 | `{sha}` |")
+    A(f"| 产物大小 | {size:,} B |")
+    A(f"| 页面标题 | `{d['title']}` |")
+    A(f"| 顶层节数 | {len(d['sections'])} |")
+    A(f"| SVG 总数 | {d['svg']} |")
+    A(f"| 页高 | {d['docH']} px |")
+    A(f"| 视图宽 / 侧栏宽 | {d['viewW']} / {d['sideW']} px |")
+    A(f"| 侧栏条目 | {d['navItems']} |")
+    A(f"| 同业分位圆点 | {d['peerDots']} |")
+    A(f"| 渲染后文本节点 | {d['textN']} |")
+    A("")
+    A("**测量前置条件（缺一不可）**：`1600×1400` 视口、`--hide-scrollbars`、")
+    A("所有 `.fold` 展开、`transition/animation` 置 none、等待 2200ms 后采集。")
+    A("改任一项，高度与字号分布都会漂移。")
+    A("")
+    A("## 1. 逐节结构指纹")
+    A("")
+    A("| # | id | 节标题 | 高度 | 卡片 | 图块 | KPI 格 | 表格 | 表行 | SVG | 明细块 | 文本长度 |")
+    A("|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for i, s in enumerate(d["sections"], 1):
+        A(f'| {i} | `{s["id"]}` | {s["title"]} | {s["h"]} | {s["cards"]} | {s["charts"]} | '
+          f'{s["kpicells"]} | {s["tables"]} | {s["rows"]} | {s["svg"]} | {s["details"]} | {len(s["text"])} |')
+    A("")
+    A("> 判据：以上任一数字与实测不符 → 版式已漂移。高度容差 ±3px（字体渲染差异），计数零容差。")
+    A("")
+    A("## 2. 字号分布（非 SVG 文本节点）")
+    A("")
+    A("| 字号 | 节点数 |")
+    A("|---|---|")
+    for k in sorted(d["fonts"], key=lambda x: -float(x.replace("px", ""))):
+        A(f'| {k} | {d["fonts"][k]} |')
+    A("")
+    A(f'合计 {d["textN"]} 个文本节点；<9.4px 的小字必须为 **0**（实测 {d["small"]}）。')
+    A("")
+    A("字号谱系（设计系统约定，不得新增档位）：")
+    A("`21px` 页面主数字 / `19px` 节内大数 / `17px` / `16.5px` KPI 值 / `15px` / `14.5px` 节标题（衬线）/ ")
+    A("`13.5px` / `13px` / `12.5px` 正文强调 / `12px` 正文 / `11.5px` / `11px` / `10.5px` 辅助 / ")
+    A("`10px` / `9.5px` 极小注。")
+    A("")
+    A("## 3. 逐节渲染后全文（文案唯一权威）")
+    A("")
+    A("> 下面是**渲染后**文本（客户端改写之后），不是源文件文本。")
+    A("> G2 门禁逐行 diff，报出首个差异行号 + 期望值 / 实得值。")
+    A("")
+    for i, s in enumerate(d["sections"], 1):
+        A(f'### 3.{i} `{s["id"]}` — {s["title"]}')
+        A("")
+        A("```text")
+        A(s["text"])
+        A("```")
+        A("")
+    A("## 4. 怎么用这份规格")
+    A("")
+    A("```bash")
+    A("# 1) 采集当前产物的指纹（与基线同口径）")
+    A("python scripts/single/probe_single.py --html <产物> --out <临时 spec.json>")
+    A("")
+    A("# 2) 与基线比对（G2）")
+    A("python scripts/single/probe_single.py --html <产物> --verify assets/single/golden/spec.json")
+    A("")
+    A("# 3) 一键门禁（构建 + G1 + G2 + G3）")
+    A("python scripts/single/repro_gate.py")
+    A("```")
+    A("")
+    A("> ⚠ 基线不是「自动接受」：更新基线等于宣布「新版本才是对的」。")
+    A("> 必须用户明确同意，并在 `README.md` 写明「为什么变」。")
+    A("")
+    open(OUT, "w", encoding="utf-8", newline="").write("\n".join(L))
+    print("✓", OUT, f"{os.path.getsize(OUT):,} B / {len(L)} 行")
+
+
+if __name__ == "__main__":
+    main()

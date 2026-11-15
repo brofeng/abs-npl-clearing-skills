@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>惠元2021年第三期 · 不良ABS 单项目穿透</title>
+<style>
+/* ===== 令牌：冷灰蓝画布 · 白纸账本（四阶墨色 / 三层材质 / 三阶透明线） ===== */
+:root{
+  /* 四阶墨色 */
+  --ink:#1A2230; --ink2:#4B5566; --ink3:#79849A; --ink4:#A6AFBE;
+  --sub:#79849A; --mute:#A6AFBE; --muted:#79849A;
+  /* 三层材质：画布 / 纸面 / 次级面 */
+  --canvas:#EAEEF4; --card:#FFFFFF; --surface:#F5F7FA; --surface2:#EBEFF5; --hover:#F7F9FC; --soft:#F5F7FA;
+  /* 三阶分隔线（全部用透明度，线才透气） */
+  --line:rgba(26,34,48,.115); --line2:rgba(26,34,48,.07); --line3:rgba(26,34,48,.22);
+  /* 圆角：小 */
+  --r:10px; --r-card:12px; --r-chip:6px;
+  /* 阴影：极轻（分层靠面层明度差，不靠重阴影） */
+  --sh:0 1px 2px rgba(16,24,40,.05);
+  --sh-h:0 2px 8px rgba(16,24,40,.075);
+  --sh-in:inset 0 1px 0 rgba(255,255,255,.6);
+  /* 衬线（只用于"陈述"声部：标题 / 结论 / 批注） */
+  --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong","SimSun",Georgia,"Times New Roman",serif;
+  /* 强调色（按品种动态注入；默认中性墨蓝） */
+  --accent:#3B4A66; --accent-soft:#F2F4F8; --accent-line:rgba(59,74,102,.20);
+  /* 语义色（克制：只在异常时出现） */
+  --pos:#A5342C; --neg:#2A7A5C; --warn:#9A6B36;
+  --red:#A5342C; --navy:#2D3955; --green:#2A7A5C; --amber:#9A6B36;
+  /* 序号块渐变（保持渐变以满足既有断言 H5） */
+  --grad:linear-gradient(150deg,#3B4A66 0%,#1A2230 100%);
+  --grad-soft:none;
+  --ease:cubic-bezier(.16,.68,.42,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);background-color:#EAEEF4;
+  background-image:linear-gradient(180deg,#EAEEF4 0%,#E8ECF3 100%);
+  background-attachment:fixed;font-size:13px;line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+.num,.bigno,.kpi .v,.tl .v,.accm .bv,.tbl th,.tbl td,.fold-sum,.mtx td{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.bigno{font-size:22px;font-weight:700;letter-spacing:-.015em;line-height:1.08}
+
+/* ===== LAYOUT（内容区 1280 居中；白纸浮于冷灰蓝画布） ===== */
+.app{display:flex;min-height:100vh}
+.sidebar{width:248px;flex:0 0 248px;background:var(--card);border-right:1px solid var(--line2);
+ position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:30}
+.sb-head{padding:18px 16px 12px;border-bottom:1px solid var(--line2)}
+.sb-title{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--ink);letter-spacing:.01em}
+.sb-sub{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.sb-search{margin-top:12px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-chip);
+ font-size:12.5px;outline:none;background:var(--surface);color:var(--ink);
+ transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
+.sb-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 8%,transparent);background:#fff}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 8px 24px}
+.sb-group{margin-bottom:2px}
+.sb-ghead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:var(--r-chip);
+ cursor:pointer;font-weight:600;font-size:12.5px;color:var(--ink2);user-select:none;transition:background .15s var(--ease)}
+.sb-ghead:hover{background:var(--soft)}
+.sb-ghead .cnt{font-size:10.5px;color:var(--ink4);font-weight:500;margin-left:6px}
+.sb-caret{transition:transform .15s;color:var(--ink4);margin-left:auto}
+.sb-type{margin:6px 0 2px}
+.sb-thead{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-chip);cursor:pointer;
+ font-weight:700;font-size:12px;color:var(--ink);letter-spacing:.02em;user-select:none;
+ background:var(--surface);border:1px solid var(--line2);transition:background .15s var(--ease)}
+.sb-thead:hover{background:var(--surface2)}
+.sb-thead .cnt{font-size:10.5px;color:var(--ink4);font-weight:500}
+.sb-type .sb-group{margin-left:6px;border-left:1px solid var(--line2);padding-left:2px}
+.sb-type.collapsed .sb-group{display:none}
+.sb-type.collapsed>.sb-thead .sb-caret{transform:rotate(-90deg)}
+.sb-group.collapsed .sb-caret{transform:rotate(-90deg)}
+.sb-items{display:flex;flex-direction:column;padding-left:6px}
+.sb-group.collapsed .sb-items{display:none}
+.sb-item{display:block;padding:6px 10px;border-radius:var(--r-chip);color:var(--ink3);text-decoration:none;
+ font-size:12.5px;cursor:pointer;border-left:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ transition:background .15s var(--ease),color .15s var(--ease)}
+.sb-item:hover{background:var(--soft);color:var(--ink)}
+.sb-item.on{background:var(--surface2);color:var(--ink);border-left-color:var(--accent);font-weight:600}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;background:rgba(255,255,255,.86);backdrop-filter:saturate(1.4) blur(12px);
+ border-bottom:1px solid var(--line2);padding:10px 18px;display:flex;align-items:center;gap:12px;z-index:20}
+.hamburger{display:none;border:1px solid var(--line);background:#fff;border-radius:var(--r-chip);width:36px;height:36px;
+ font-size:18px;cursor:pointer;line-height:1;color:var(--ink2)}
+.crumb{font-size:12.5px;color:var(--ink3)}
+.crumb b{color:var(--ink)}
+.view{display:none;width:100%;max-width:1280px;margin:0 auto;padding:26px 28px 80px;background:var(--card)}
+.view.on{display:block;animation:fade .28s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== HERO（项目头） ===== */
+.hero{position:relative;background:var(--card);border:1px solid var(--line2);
+ border-radius:var(--r-card);padding:20px 24px 18px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px;
+ transition:box-shadow .28s var(--ease),border-color .28s var(--ease)}
+.hero::before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--grad)}
+.hero:hover{box-shadow:var(--sh-h);border-color:var(--line3)}
+.hero-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.hero h1{margin:10px 0 5px;font-family:var(--serif);font-size:21px;font-weight:700;letter-spacing:.005em;line-height:1.3}
+.hero .issuer{color:var(--ink3);font-size:12px;margin:0;letter-spacing:.02em}
+.hero .cat{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.1em;
+ color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);
+ border:1px solid var(--accent-line);padding:3px 10px;border-radius:999px;text-transform:uppercase}
+.hbadge{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;font-size:11px;font-weight:600;
+ padding:4px 11px;border-radius:999px;white-space:nowrap;border:1px solid;letter-spacing:.02em}
+.hbadge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.hbadge.t-final{background:rgba(42,122,92,.08);color:var(--neg);border-color:rgba(42,122,92,.22)}
+.hbadge.t-clear{background:rgba(154,107,54,.08);color:var(--warn);border-color:rgba(154,107,54,.22)}
+.hsum{border-left:2.5px solid var(--accent-line);background:var(--surface);border-radius:0 var(--r-chip) var(--r-chip) 0;
+ padding:9px 14px;font-size:12.5px;color:var(--ink2);margin:12px 0 0;line-height:1.7}
+.hsum-exec{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 6%,#fff),var(--surface));
+ border-left-color:var(--accent);color:var(--ink);font-size:12.5px}
+.hsum2{background:var(--surface2);border-left-color:var(--line3);color:var(--ink3);font-size:11.5px}
+.kpi-strip{margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-flex;align-items:baseline;gap:6px;padding:3px 10px;border-radius:var(--r-chip);font-size:11.5px;
+ font-weight:500;background:transparent;color:var(--ink2);border:1px solid var(--line)}
+.vhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.cat{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;
+ color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid var(--accent-line)}
+
+/* ===== KPI 账签条（细线分隔；主值大、标签极小、单位下沉） ===== */
+.kpi-row,.kpis{display:grid;gap:1px;background:var(--card);
+ border:1px solid var(--line2);border-radius:var(--r-card);overflow:hidden;margin-bottom:16px;box-shadow:var(--sh)}
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi-row{grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.kpi{background:var(--card);padding:15px 16px 14px;border:0;border-radius:0;outline:1px solid var(--line2);outline-offset:-.5px;transition:background .28s var(--ease)}
+.kpi:hover{background:var(--hover)}
+.kpi .k{font-size:10.5px;color:var(--ink4);letter-spacing:.08em;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.kpi .v{font-size:22px;font-weight:600;line-height:1.1;letter-spacing:-.01em;color:var(--ink);word-break:break-all}
+.kpi .v small{font-size:11.5px;font-weight:500;color:var(--ink3);margin-left:4px;letter-spacing:.02em}
+.kpi .n{font-size:11px;color:var(--ink4);margin-top:6px;line-height:1.5}
+.kpi.hi{background:color-mix(in srgb,var(--accent) 4%,#fff)}
+.kpi.hi .v{color:var(--accent)}
+.badge{font-size:10px;font-weight:600;padding:1.5px 6px;border-radius:4px;letter-spacing:.03em}
+.badge.ok{background:rgba(42,122,92,.10);color:var(--neg)}
+.badge.no{background:rgba(154,107,54,.10);color:var(--warn)}
+.badge.up{background:rgba(165,52,44,.10);color:var(--pos)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:500}
+.pill.ok{background:rgba(42,122,92,.10);color:var(--green)}
+.pill.warn{background:rgba(154,107,54,.12);color:var(--amber)}
+.pill.bad{background:rgba(165,52,44,.10);color:var(--red)}
+
+/* ===== 章节与卡片 ===== */
+.sec-head{display:flex;align-items:baseline;gap:11px;margin:20px 0 10px;flex-wrap:wrap}
+.sec-num{width:24px;height:24px;border-radius:6px;background:var(--grad);color:#fff;
+ font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+.sec-head h2{margin:0;font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:.01em}
+.sec-sub{font-size:11.5px;color:var(--ink4);margin-left:auto;text-align:right;line-height:1.4}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:var(--r-card);
+ padding:16px 18px;margin-bottom:14px;box-shadow:var(--sh);position:relative;
+ transition:box-shadow .28s var(--ease),border-color .28s var(--ease)}
+.card:hover{box-shadow:var(--sh-h);border-color:var(--line3)}
+.card .ct,.card .ct2{font-family:var(--serif);font-weight:700;font-size:13.5px;margin-bottom:9px;color:var(--ink)}
+.card h3{margin:0 0 6px;font-size:13px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch}
+
+/* ===== 折叠卡 ===== */
+.fold{border:1px solid var(--line2);border-radius:var(--r-card);background:var(--card);margin-bottom:14px;overflow:hidden;
+ transition:border-color .3s var(--ease)}
+.fold:hover{border-color:var(--line3)}
+.fold-h{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;user-select:none;font-weight:600;
+ background:var(--card);border:0;border-left:3px solid var(--accent);
+ width:100%;font:inherit;text-align:left;transition:background .3s var(--ease)}
+.fold:not(.collapsed)>.fold-h{background:var(--surface)}
+.fold-h .ft{font-family:var(--serif);font-size:14.5px;letter-spacing:.01em}
+.fold-sum{font-size:11.5px;color:var(--ink3);font-weight:400;margin-left:auto;text-align:right}
+.fold-h .pm{flex:0 0 auto;width:22px;height:22px;border-radius:var(--r-chip);border:1px solid var(--line);background:#fff;
+ display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:13px;font-weight:400;
+ transition:transform .34s var(--ease),background .3s,color .3s,border-color .3s}
+.fold:not(.collapsed)>.fold-h .pm{transform:rotate(45deg);background:var(--accent);border-color:var(--accent);color:#fff}
+.fold-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s var(--ease)}
+.fold:not(.collapsed)>.fold-b{grid-template-rows:1fr}
+.fold-b>div{overflow:hidden}
+.fold-b>div>.inner{padding:2px 16px 16px}
+
+/* ===== 图表（铁律：父容器 overflow-x 必须 visible；SVG 不得加 width/max-width） ===== */
+.chart{border:1px solid var(--line2);border-radius:var(--r-card);background:var(--card);
+ padding:14px;margin-bottom:14px;overflow:visible;box-shadow:var(--sh);transition:box-shadow .28s var(--ease),border-color .28s var(--ease)}
+.chart:hover{box-shadow:var(--sh-h);border-color:var(--line3)}
+.chart .ct{font-family:var(--serif);font-weight:700;font-size:13px;margin-bottom:8px;color:var(--ink)}
+.chart svg{display:block;margin:0 auto}
+.dist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+
+/* ===== 表格：账本感（去竖线 + 双向吸附 + 数字右对齐） ===== */
+.tbl-wrap{overflow:auto;border:1px solid var(--line2);border-radius:var(--r);max-height:560px;background:var(--card)}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.tbl th{position:sticky;top:0;z-index:3;background:var(--surface);color:var(--ink3);font-weight:600;font-size:10.5px;
+ letter-spacing:.06em;text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th.l{text-align:left}
+.tbl td{padding:6.5px 10px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap;color:var(--ink2)}
+.tbl td.l{text-align:left}
+.tbl th:first-child{left:0;z-index:4;min-width:150px}
+.tbl td:first-child{position:sticky;left:0;z-index:2;background:var(--card)}
+.tbl tbody tr:nth-child(even):not(.tot):not(.grp):not(.dim) td{background:var(--surface)}
+.tbl tbody tr:nth-child(even):not(.tot):not(.grp):not(.dim) td:first-child{background:var(--surface)}
+.tbl tbody tr:hover td{background:var(--hover)}
+.tbl tbody tr:hover td:first-child{background:var(--hover)}
+.tbl tr.grp td{background:var(--surface2);font-weight:700;color:var(--ink);font-size:11px;letter-spacing:.02em}
+.tbl tr.tot td{background:var(--surface);font-weight:700;color:var(--ink)}
+.tbl tr.dim td{color:var(--ink4);font-size:11px}
+.mtx{font-size:10.5px}
+.mtx th,.mtx td{padding:4.5px 6px;font-size:10.5px}
+.mtx th.l,.mtx td.l{text-align:left}
+/* ★列宽与冻结（2026-09-22 修订）：层级 60px（单行 nowrap）＋ 科目 172px（最长 11 字 1 行）。
+   两列**双层冻结**（left:0 / left:60px）——27 期矩阵横向滚动时标签恒可见。
+   旧版科目列无下限，在 27 期面板被压到 34px、标签折 4–7 行（实测见 _过程 下 _mtx_measure_before.txt）。 */
+.mtx{--mtx-c0:52px;--mtx-c1:172px}
+.mtx th:first-child,.mtx td:first-child{width:var(--mtx-c0);min-width:var(--mtx-c0);white-space:nowrap;line-height:1.35}
+.mtx th:first-child{left:0;z-index:5}
+.mtx th:nth-child(2),.mtx td:nth-child(2){width:var(--mtx-c1);min-width:var(--mtx-c1);white-space:normal;word-break:normal;overflow-wrap:break-word;line-height:1.4}
+.mtx th:nth-child(2){left:var(--mtx-c0);z-index:4}
+.mtx td:nth-child(2){position:sticky;left:var(--mtx-c0);z-index:2;background:var(--card)}
+.mtx tbody tr:hover td:nth-child(2){background:var(--hover)}
+.mtx td.num{background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font-weight:700}
+.mtx tr.grp td{background:var(--surface2);font-weight:700;color:var(--ink)}
+.mtx tr.subtot td{font-weight:700;background:var(--surface)}
+.mtx tr.tot td{font-weight:700;background:var(--surface)}
+.mtx tr.split td.l{color:var(--ink3)}
+.mtx tr[data-tier="senior"] td:first-child{border-left:4px solid var(--c-sen-p)}
+.mtx tr[data-tier="sub"] td:first-child{border-left:4px solid var(--c-sub-p)}
+.zero{color:var(--ink4)}
+.warnword{color:var(--warn)}
+
+/* ===== 信息 / 注释 / 警示 ===== */
+.infolist{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin:0}
+.infolist div{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line2);padding:8px 0;align-items:baseline}
+.infolist dt{color:var(--ink3);min-width:80px;font-size:12px;flex:0 0 auto}
+.infolist dd{margin:0;font-weight:600;font-size:12.5px;text-align:right;color:var(--ink)}
+.pool-sum{font-size:12.5px;margin-bottom:12px;color:var(--ink2);background:var(--surface);border:1px solid var(--line2);
+ border-radius:var(--r-chip);padding:10px 13px;line-height:1.75}
+.pool-sum b{color:var(--ink);font-weight:700}
+.warn{border:1px solid rgba(154,107,54,.28);background:rgba(154,107,54,.05);border-radius:var(--r-chip);padding:11px 13px;margin-bottom:8px}
+.warn .wt{font-weight:700;color:var(--warn);font-size:12.5px;margin-bottom:3px}
+.note{display:block;padding:11px 0;margin:0 0 2px;border-bottom:1px solid var(--line2);font-size:12.5px;color:var(--ink2);line-height:1.7}
+.note:last-child{border-bottom:0}
+.note .idx{display:inline-flex;width:19px;height:19px;border-radius:5px;background:var(--surface2);color:var(--ink3);
+ font-size:10.5px;font-weight:700;align-items:center;justify-content:center;margin-right:9px;vertical-align:middle}
+.note.warn .idx{background:rgba(154,107,54,.12);color:var(--warn)}
+.note b{color:var(--ink);font-weight:700}
+.note code{background:var(--surface2);border-radius:4px;padding:1px 5px;font-size:11px;color:var(--ink2)}
+.note ul.cal{margin:5px 0 0;padding-left:18px}
+.note ul.cal li{margin:3px 0}
+
+/* ===== 结论 ===== */
+.cc{border-left:2px solid var(--accent-line);padding:2px 0 2px 16px}
+.concl{margin-top:6px;display:flex;flex-wrap:wrap;gap:8px}
+.cnl p{margin:0 0 6px;padding-left:12px;position:relative;font-size:12.5px;color:var(--ink2);line-height:1.7}
+.cnl p:last-child{margin-bottom:0}
+.cnl p::before{content:"";position:absolute;left:0;top:9px;width:3px;height:3px;border-radius:50%;background:var(--accent)}
+.cnl b{color:var(--ink);font-weight:700}
+.tl{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r-chip);padding:14px 16px}
+.tl .l{font-size:10.5px;color:var(--ink4);font-weight:600;letter-spacing:.06em;margin-bottom:7px}
+.tl .v{font-size:19px;font-weight:600;line-height:1.15;color:var(--ink)}
+.tl .s{font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.5}
+
+/* ===== 图例 / 徽章 ===== */
+.legend{display:flex;flex-wrap:wrap;gap:7px 18px;margin-top:14px;font-size:11.5px;color:var(--ink3)}
+.legend .lg{display:inline-flex;align-items:center;gap:7px;color:var(--ink2)}
+.legend .sw{width:9px;height:9px;border-radius:2px;display:inline-block;flex:0 0 auto}
+.kbadge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:600;margin-left:6px;white-space:nowrap}
+.kbadge.kA{background:rgba(42,122,92,.10);color:var(--green)}
+.kbadge.kB{background:rgba(154,107,54,.12);color:var(--amber)}
+.kbadge.kC{background:rgba(165,52,44,.10);color:var(--red)}
+
+/* ===== 账户勾稽 ===== */
+.accm{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.accm .box{flex:1;min-width:130px;border:1px solid var(--line2);border-radius:var(--r-chip);padding:11px;text-align:center;background:var(--surface)}
+.accm .box .bl{font-size:11.5px;color:var(--ink3)}
+.accm .box .bv{font-size:15px;font-weight:600;margin-top:4px;word-break:break-all;color:var(--ink)}
+.accm .op{display:flex;align-items:center;font-size:17px;color:var(--ink4);font-weight:400}
+
+/* ===== 总览 ===== */
+.ov-head{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px;margin-top:14px}
+.ov-card{border:1px solid var(--line2);border-radius:var(--r-card);background:var(--card);
+ padding:15px;cursor:pointer;border-top:3px solid var(--bc,#ccc);box-shadow:var(--sh);
+ transition:box-shadow .28s var(--ease),border-color .28s var(--ease),transform .28s var(--ease)}
+.ov-card:hover{box-shadow:var(--sh-h);transform:translateY(-1px)}
+.ov-card .oname{font-weight:600;font-size:14px;color:var(--ink)}
+.ov-card .obank{font-size:10.5px;color:var(--bc);background:color-mix(in srgb,var(--bc) 10%,transparent);display:inline-block;
+ padding:1px 8px;border-radius:999px;margin-top:5px;border:1px solid color-mix(in srgb,var(--bc) 22%,transparent)}
+.ov-card .ok{font-size:11.5px;color:var(--ink3);margin-top:9px;display:flex;justify-content:space-between;gap:8px}
+.ov-card .ok span:last-child{color:var(--ink);font-weight:600}
+.vbands{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:12px 0 4px}
+.vband{border:1px solid var(--line2);border-left:3px solid var(--accent);border-radius:var(--r-chip);background:var(--card);
+ padding:13px 15px;box-shadow:var(--sh)}
+.vband .vt{font-weight:700;font-size:13.5px;color:var(--ink)}
+.vband .vn{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.vband .vk{font-size:11.5px;color:var(--ink3);margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+.vband .vk b{color:var(--ink)}
+.vchip{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:999px;color:var(--vc,#8aa0b6);
+ background:color-mix(in srgb,var(--vc,#8aa0b6) 10%,transparent);border:1px solid color-mix(in srgb,var(--vc,#8aa0b6) 22%,transparent)}
+
+/* ===== FOOT ===== */
+.foot{margin-top:36px;padding-top:18px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink4);line-height:1.85}
+.foot b{color:var(--ink3)}
+
+/* ===== 品种色令牌 / 动态 accent ===== */
+:root{
+ --v-credit:#A5342C; --v-credit-soft:#FBF1F1; --v-credit-line:#E8D0CE;
+ --v-consumer:#3B4A66; --v-consumer-soft:#F2F4F8; --v-consumer-line:#D9DEE8;
+ --v-business:#2A7A5C; --v-business-soft:#EDF5F1; --v-business-line:#CFE4DA;
+ --v-none:#8aa0b6; --v-none-soft:#F2F5F8; --v-none-line:#DCE3EB;
+ --c-sen-p:#A5342C; --c-sen-i:#C2604F; --c-sub-p:#3B4A66; --c-sub-f:#6B93B5;
+ --c-sub-e:#2A7A5C; --c-fee:#9A6B36; --c-carry:#6E5A8C;
+}
+.view.vcredit{--accent:var(--v-credit);--accent-soft:var(--v-credit-soft);--accent-line:var(--v-credit-line)}
+.view.vconsumer{--accent:var(--v-consumer);--accent-soft:var(--v-consumer-soft);--accent-line:var(--v-consumer-line)}
+.view.vbusiness{--accent:var(--v-business);--accent-soft:var(--v-business-soft);--accent-line:var(--v-business-line)}
+.view.vnone{--accent:var(--v-none);--accent-soft:var(--v-none-soft);--accent-line:var(--v-none-line)}
+
+/* ===== 入场与图示动画 ===== */
+.rv{opacity:0;transform:translateY(16px)}
+.rv.in{opacity:1;transform:none;transition:opacity .66s var(--ease),transform .66s var(--ease)}
+.rv.d1{transition-delay:.06s}
+.rv.d2{transition-delay:.12s}
+.rv.d3{transition-delay:.18s}
+@keyframes growX{from{transform:scaleX(0)}to{transform:none}}
+@keyframes growY{from{transform:scaleY(0)}to{transform:none}}
+@keyframes donutIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes drawk{from{stroke-dashoffset:var(--len,1200)}to{stroke-dashoffset:0}}
+@keyframes popk{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+.in .anr-x{animation:growX .6s ease both;transform-box:fill-box;transform-origin:left center}
+.in .anr-y{animation:growY .6s ease both;transform-box:fill-box;transform-origin:bottom center}
+.in .anr-o{animation:donutIn .6s ease both;transform-box:fill-box;transform-origin:center}
+.in .anr-pop{animation:popk .5s ease both;transform-box:fill-box;transform-origin:center}
+.in .andraw{animation:drawk .9s ease both}
+rect.anr-x:hover,rect.anr-y:hover,rect.anr-o:hover{opacity:.82}
+svg{display:block}
+.ax{font-size:10px;fill:var(--ink4)}
+.axl{font-size:10.5px;fill:var(--ink3)}
+.gline{stroke:var(--line2);stroke-width:1}
+
+/* ===== 响应式分档 ===== */
+.scrim{display:none}
+@media(max-width:1100px){
+ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mtx th,.mtx td{padding:3px 3.5px;font-size:9.5px}
+ .mtx{--mtx-c0:46px;--mtx-c1:148px}
+ .view{padding:22px 20px 64px}
+}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+@media(max-width:760px){.infolist{grid-template-columns:1fr}}
+@media(max-width:640px){.kpis{grid-template-columns:1fr}.view{padding:18px 14px 56px}}
+@media(max-width:1024px){
+ .app{display:block}
+ .sidebar{position:fixed;left:0;top:0;z-index:20;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.18)}
+ .sidebar.open{transform:none}
+ .hamburger{display:block}
+ .scrim.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:15}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
+ .rv{opacity:1!important;transform:none!important}
+ .andraw{stroke-dasharray:none!important;stroke-dashoffset:0!important}}
+
+
+:root{
+  --ease:cubic-bezier(.16,.68,.42,1);
+  --grad-soft:linear-gradient(180deg,#fff,#FAFBFE 62%,#F5F8FC);
+  --sh-lift:0 2px 4px rgba(16,24,40,.05),0 22px 38px -18px rgba(16,24,40,.22);
+}
+#xtTip{
+  position:fixed;z-index:99999;pointer-events:none;opacity:0;
+  transform:translateY(4px) scale(.98);transition:opacity .14s var(--ease), transform .14s var(--ease);
+  max-width:360px;padding:9px 12px 10px;border-radius:11px;
+  background:rgba(20,26,38,.96);color:#F2F5F9;font-size:12px;line-height:1.6;
+  box-shadow:0 10px 30px -6px rgba(16,24,40,.55), 0 0 0 1px rgba(255,255,255,.07);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+#xtTip.on{opacity:1;transform:translateY(0) scale(1)}
+#xtTip .t{font-weight:700;color:#fff;display:block;margin-bottom:3px;font-size:12.5px}
+#xtTip .m{color:#C7D0DE;white-space:pre-line}
+#xtTip .bar{height:2px;border-radius:2px;background:var(--accent,#2D3955);margin:6px 0 0;opacity:.9}
+svg .xt-hit{filter:brightness(1.12)}
+.xt-solo{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:12px;
+  background:var(--grad-soft);border:1px solid var(--line2);font-size:13px;color:var(--ink2,#38425A)}
+.xt-solo b{color:var(--ink,#141A26);font-size:15px}
+.xt-solo .dot{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+
+#view-xcompare .xc-wrap{
+  --ink:#141A26;--ink2:#38425A;--ink3:#697487;--ink4:#98A2B3;
+  --canvas:#F2F5F9;--card:#fff;--surface:#EDF1F6;--surface2:#E4EAF2;--hover:#F8FAFD;
+  --line:rgba(20,26,38,.11);--line2:rgba(20,26,38,.07);--line3:rgba(20,26,38,.20);
+  --accent:#2D3955;--pos:#B3261E;--neg:#1F7A5C;--warn:#B0763F;
+  --ease:cubic-bezier(.16,.68,.42,1);
+  --gap:14px;--head-h:96px;--legend-h:44px;--foot-h:56px;--r:16px;
+  background:var(--canvas);color:var(--ink);
+  font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:.004em;
+}#view-xcompare .xc-wrap *{box-sizing:border-box}#view-xcompare .xc-wrap{max-width:1360px;margin:0 auto;padding:24px 20px 64px}#view-xcompare .xc-wrap h1{font-size:24px;line-height:1.3;margin:0 0 8px;font-weight:650;letter-spacing:-.01em}#view-xcompare .xc-hd{height:var(--head-h);display:flex;flex-direction:column;justify-content:center;
+  margin:0 0 12px;overflow:hidden}#view-xcompare .xc-meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:11.5px;color:var(--ink3);line-height:1.5}#view-xcompare .xc-meta b{color:var(--ink2);font-weight:640}#view-xcompare .xc-tools{display:flex;align-items:center;gap:12px;margin-top:8px}#view-xcompare .xc-chips{display:flex;gap:6px;flex-wrap:wrap}#view-xcompare .xc-chip{border:1px solid var(--line);background:var(--card);font:inherit;font-size:12px;
+  color:var(--ink2);padding:4px 10px;border-radius:999px;cursor:pointer;transition:all .16s var(--ease)}#view-xcompare .xc-chip:hover{background:var(--hover)}#view-xcompare .xc-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}#view-xcompare .xc-fnote{font-size:11.5px;color:var(--ink4)}#view-xcompare .xc-kpi{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin:0 0 14px}#view-xcompare .xc-kpi-i{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:9px 11px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);overflow:hidden}#view-xcompare .xc-kpi-i .l{color:var(--ink3);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#view-xcompare .xc-kpi-i .v{font-size:16.5px;font-weight:650;letter-spacing:-.01em;line-height:1.3;white-space:nowrap}#view-xcompare .xc-kpi-i .s{color:var(--ink4);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#view-xcompare .xc-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  margin:0 0 16px;padding:16px 18px 0;display:flex;flex-direction:column;overflow:hidden}#view-xcompare .xc-ch{flex:0 0 auto;margin-bottom:10px}#view-xcompare .xc-ch h2{font-size:16.5px;margin:0 0 3px;font-weight:640;letter-spacing:-.005em}#view-xcompare .xc-ch .xc-idx{display:inline-block;min-width:1.9em;color:var(--ink4);font-weight:600}#view-xcompare .xc-sub{color:var(--ink3);font-size:12.5px;margin:0;line-height:1.55}#view-xcompare .xc-sub b{color:var(--ink2)}#view-xcompare .xc-cb{flex:0 0 auto;display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gap);align-items:stretch}#view-xcompare .xc-plot{position:relative;min-width:0;display:flex;flex-direction:column;margin:0;height:430px}#view-xcompare .xc-plot > svg{flex:1 1 auto;min-height:0;width:100%;height:100%;display:block;overflow:visible}#view-xcompare .xc-tablewrap{min-width:0}#view-xcompare .xc-plot-t{height:auto;min-height:0}#view-xcompare .s01 .xc-plot{height:430px}#view-xcompare .s01 .xc-plot.xc-mini-p{height:268px}#view-xcompare .s02 .xc-plot{height:410px}#view-xcompare .s03 .xc-plot{height:600px}#view-xcompare .xc-side{display:flex;flex-direction:column;gap:var(--gap)}#view-xcompare .xc-side .xc-plot{height:293px;flex:1 1 0}#view-xcompare .s04 .xc-plot{height:380px}#view-xcompare .s04 .xc-plot:not(:first-child){height:340px}#view-xcompare .s05 .xc-formula{height:346px}#view-xcompare .s05 .xc-plot{height:346px}#view-xcompare .xc-lg{flex:0 0 var(--legend-h);height:var(--legend-h);display:flex;align-items:center;
+  gap:14px;overflow:hidden;border-top:1px dashed var(--line2);margin-top:10px}#view-xcompare .lg-list{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:11.5px;color:var(--ink3);
+  align-content:center;max-height:100%;overflow:hidden}#view-xcompare .lg-i{display:inline-flex;align-items:center;white-space:nowrap}#view-xcompare .lg-i i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;flex:0 0 auto}#view-xcompare .lg-i i.xc-lgi{background:none;border:1.4px dashed var(--ink4);border-radius:50%}#view-xcompare .lg-extra{font-size:11px;color:var(--ink4);white-space:nowrap}#view-xcompare .lg-toggle{display:none;border:1px solid var(--line);background:var(--card);font:inherit;font-size:11.5px;
+  color:var(--ink2);padding:3px 10px;border-radius:8px;cursor:pointer}#view-xcompare .xc-cf{flex:0 0 auto;min-height:var(--foot-h);font-size:11px;color:var(--ink4);line-height:1.6;
+  padding:8px 0 12px;border-top:1px solid var(--line2);margin-top:8px;overflow:hidden}#view-xcompare .xc-cf b{color:var(--ink3)}#view-xcompare .xc-svg text{font-family:inherit}#view-xcompare .xc-tk{font-size:10px;fill:var(--ink4)}#view-xcompare .xc-axt{font-size:10.5px;fill:var(--ink3)}#view-xcompare .xc-gl{stroke:var(--line2);stroke-width:1}#view-xcompare .xc-frame{fill:#FCFDFE;stroke:var(--line2);stroke-width:1}#view-xcompare .xc-axis{stroke:var(--line3);stroke-width:1}#view-xcompare .xc-fit{stroke:var(--ink4);stroke-width:1.3;stroke-dasharray:6 5;opacity:.8}#view-xcompare .xc-diag{stroke:#1F7A5C;stroke-width:1.5;stroke-dasharray:7 5;opacity:.85}#view-xcompare .xc-fcb{stroke:var(--ink4);stroke-width:1;stroke-dasharray:3 4;opacity:.5}#view-xcompare .xc-med{stroke:var(--ink3);stroke-width:1;stroke-dasharray:5 4;opacity:.5}#view-xcompare .xc-med2{stroke-width:1.1;stroke-dasharray:4 4;opacity:.6}#view-xcompare .xc-medtick{stroke-width:2}#view-xcompare .xc-qlab{font-size:11px;font-weight:640;fill:var(--ink2)}#view-xcompare .xc-leader{stroke:var(--ink4);stroke-width:.9;stroke-dasharray:2.5 2.5}#view-xcompare .xc-anno{font-size:10px;font-weight:600;fill:var(--ink)}#view-xcompare .xc-ag{transition:opacity .18s var(--ease)}#view-xcompare .xc-ag.xc-dim{opacity:.14}#view-xcompare .xc-b{fill-opacity:.74;stroke:#fff;stroke-width:1.1;transition:opacity .18s var(--ease),fill-opacity .18s var(--ease)}#view-xcompare .xc-b:hover{fill-opacity:1;stroke-width:1.8}#view-xcompare .xc-bgap{stroke-width:1.8;stroke-dasharray:3 3;fill-opacity:.10}#view-xcompare .xc-dim{opacity:.14;transition:opacity .2s var(--ease)}#view-xcompare .xc-gapsep{stroke:var(--ink3);stroke-width:1;stroke-dasharray:2 3;opacity:.6}#view-xcompare .xc-gapsub{font-size:9.5px;fill:var(--ink3)}#view-xcompare .xc-lgttl{font-size:10.5px;fill:var(--ink3);font-weight:640}#view-xcompare .xc-lgt{font-size:10.5px;fill:var(--ink2)}#view-xcompare .xc-lgcirc{fill:none;stroke:var(--ink4);stroke-width:1;stroke-dasharray:2 2}#view-xcompare .xc-minit{font-size:11.5px;font-weight:640;fill:var(--ink2)}#view-xcompare .xc-minisub{font-size:9.5px;fill:var(--ink4)}#view-xcompare .xc-barval{font-size:9.5px;fill:var(--ink2);font-weight:640}#view-xcompare .xc-track{stroke:var(--line3);stroke-width:2.2;stroke-linecap:round}#view-xcompare .xc-rn{font-size:10.5px;fill:var(--ink2)}#view-xcompare .xc-rv{font-size:10.5px;fill:var(--ink2);font-weight:600}#view-xcompare .xc-conn{stroke:var(--ink4);stroke-width:1;stroke-dasharray:2 2;opacity:.6}#view-xcompare .xc-heatth{font-size:10.5px;fill:var(--ink3);font-weight:640}#view-xcompare .xc-heatrow{font-size:11px;fill:var(--ink2)}#view-xcompare .xc-heatv{font-size:10.5px;font-weight:600;pointer-events:none}#view-xcompare .xc-heatcell{transition:opacity .16s var(--ease)}#view-xcompare .xc-heatcell:hover{opacity:.84}#view-xcompare .xc-formula{display:flex;flex-direction:column}#view-xcompare .xc-fbox{background:var(--surface);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;height:100%;overflow:hidden}#view-xcompare .xc-fh{font-size:13px;font-weight:640;margin-bottom:8px}#view-xcompare .xc-feq{font-size:11.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line2);
+  border-radius:8px;padding:7px 9px;line-height:1.6}#view-xcompare .xc-feq2{font-size:11.5px;color:var(--ink2);padding:6px 2px 8px}#view-xcompare .xc-fkv{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--ink3);
+  padding:3px 0;border-bottom:1px dashed var(--line2)}#view-xcompare .xc-fkv:last-child{border-bottom:0}#view-xcompare .xc-fkv b{color:var(--ink);font-weight:640}#view-xcompare .xc-caption{font-size:11px;color:var(--ink4);margin:0 0 6px;line-height:1.5}#view-xcompare .xc-scroll{overflow:auto;border:1px solid var(--line2);border-radius:10px;max-height:420px}#view-xcompare .xc-scroll-s{max-height:260px}#view-xcompare .xc-tbl{width:100%;border-collapse:collapse;font-size:12px}#view-xcompare .xc-tbl th,#view-xcompare .xc-tbl td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--line2);white-space:nowrap}#view-xcompare .xc-tbl th{color:var(--ink3);font-weight:640;font-size:11px;position:sticky;top:0;background:var(--card);z-index:2;line-height:1.3}#view-xcompare .xc-tbl th .u{color:var(--ink4);font-weight:400;font-size:10px}#view-xcompare .xc-tbl th.l,#view-xcompare .xc-tbl td.l{text-align:left}#view-xcompare .xc-tbl th[data-sort]{cursor:pointer;user-select:none}#view-xcompare .xc-tbl th[data-sort].asc::after{content:" ▲";font-size:8px;color:var(--accent)}#view-xcompare .xc-tbl th[data-sort].desc::after{content:" ▼";font-size:8px;color:var(--accent)}#view-xcompare .xc-tbl tbody tr:hover{background:var(--hover)}#view-xcompare .xc-tbl .n{font-variant-numeric:tabular-nums}#view-xcompare .xc-cat{display:inline-block;padding:0 7px;border-radius:999px;font-size:10.5px;
+  color:var(--c);background:var(--surface);border:1px solid color-mix(in srgb,var(--c) 26%,#fff)}#view-xcompare details.xc-fold{border:1px solid var(--line2);border-radius:10px;background:#FCFDFE}#view-xcompare details.xc-fold>summary.xc-fold-h{cursor:pointer;padding:8px 12px;font-size:12px;font-weight:640;
+  color:var(--ink2);list-style:none;display:flex;gap:8px;align-items:flex-start}#view-xcompare details.xc-fold>summary::-webkit-details-marker{display:none}#view-xcompare details.xc-fold>summary span:first-child{display:inline-flex;flex:0 0 auto;width:17px;height:17px;
+  border-radius:5px;background:var(--surface2);color:var(--ink2);align-items:center;justify-content:center;font-weight:700}#view-xcompare details.xc-fold[open]>summary.xc-fold-h{color:var(--ink);border-bottom:1px solid var(--line2)}#view-xcompare details.xc-fold[open]>summary span:first-child{background:var(--accent);color:#fff}#view-xcompare .xc-fold-b{padding:8px 10px 10px}#view-xcompare .xc-note2{grid-column:span 12;font-size:12px;color:var(--ink2);line-height:1.75;margin:0}#view-xcompare .xc-note2 b{color:var(--ink);font-weight:640}#view-xcompare .xc-note2 .u-hint{color:var(--ink4);font-size:11px;margin-left:6px}#view-xcompare .xc-plot.xc-ph{height:var(--ph,430px) !important}#view-xcompare .s03 .xc-tk{font-size:11.5px}#view-xcompare .s03 .xc-axt{font-size:12px}#view-xcompare .s03 .xc-rn{font-size:12px}#view-xcompare .s03 .xc-rv{font-size:12px}#view-xcompare .s03 .xc-barval{font-size:11.5px}#view-xcompare .s03 .xc-lgttl{font-size:12px}#view-xcompare .s03 .xc-minisub{font-size:11px}#view-xcompare .s03 .lg-list{font-size:12px;gap:6px 18px}#view-xcompare .s03 .lg-extra{font-size:11.5px}#view-xcompare .s03 .xc-cf{font-size:12px}#view-xcompare .s03 .xc-lg{height:58px;flex:0 0 58px}#view-xcompare .s05 .xc-cb > div{grid-column:span 12}#view-xcompare .xc-anoms{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;min-width:0}#view-xcompare .xc-anom{background:var(--surface);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;min-width:0}#view-xcompare .xc-anom h4{margin:0 0 6px;font-size:12px;font-weight:640;color:var(--ink2)}#view-xcompare .xc-anom ol{margin:0;padding-left:16px;font-size:12px;color:var(--ink2);line-height:1.9}#view-xcompare .xc-anom li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;list-style:decimal}#view-xcompare .xc-anom .nm{color:var(--ink)}#view-xcompare .xc-anom .v{color:var(--ink);font-weight:640;margin-left:6px}#view-xcompare .xc-anom .bk{color:var(--ink4);margin-left:6px;font-size:11px}#view-xcompare .xc-cmt{background:#FCFDFE;border:1px solid var(--line2);border-radius:10px;padding:12px 16px}#view-xcompare .xc-cmt p{margin:0 0 8px;font-size:12.5px;color:var(--ink2);line-height:1.8}#view-xcompare .xc-cmt p:last-child{margin-bottom:0}#view-xcompare .xc-cmt b{color:var(--ink)}@media(max-width:1180px){#view-xcompare .xc-wrap .xc-kpi{grid-template-columns:repeat(4,1fr) !important}#view-xcompare .xc-wrap .xc-cb{grid-template-columns:repeat(6,1fr) !important}#view-xcompare .xc-wrap .xc-cb > .xc-plot,#view-xcompare .xc-wrap .xc-cb > .xc-side,#view-xcompare .xc-wrap .xc-cb > .xc-formula{grid-column:span 6 !important}#view-xcompare .xc-wrap .xc-plot{height:auto !important}#view-xcompare .xc-wrap .xc-plot > svg{height:auto !important}#view-xcompare .xc-wrap .xc-side{display:flex;flex-direction:column;gap:var(--gap)}#view-xcompare .xc-wrap .xc-side .xc-plot{height:auto !important}#view-xcompare .xc-wrap .xc-formula{height:auto !important}#view-xcompare .xc-wrap .xc-fbox{height:auto}
+}@media(max-width:767px){#view-xcompare .xc-wrap{padding:16px 12px 48px}#view-xcompare .xc-wrap .xc-kpi{grid-template-columns:repeat(2,1fr) !important}#view-xcompare .xc-wrap .xc-cb{grid-template-columns:1fr !important}#view-xcompare .xc-wrap .xc-cb > *{grid-column:1 / -1 !important}#view-xcompare .xc-wrap .xc-plot{height:auto !important}#view-xcompare .xc-wrap .xc-plot > svg{height:auto !important;width:100% !important}#view-xcompare .xc-wrap .xc-side{display:flex;flex-direction:column}#view-xcompare .xc-wrap .xc-hd{height:auto !important;min-height:96px}#view-xcompare .xc-wrap .xc-lg{flex-wrap:wrap;overflow:visible;height:auto !important;min-height:0}#view-xcompare .xc-wrap .lg-toggle{display:inline-block}#view-xcompare .xc-wrap .xc-lg:not(.open) .lg-list{display:none}#view-xcompare .xc-wrap .xc-lg .lg-extra{display:none}
+}@media(prefers-reduced-motion:reduce){#view-xcompare .xc-wrap *{transition:none!important;animation:none!important}}
+
+#view-appendix .a-wrap{position:relative}#view-appendix .a-ph{margin:0 0 16px;padding:0}#view-appendix .a-ph-t{margin:0 0 5px;font-size:19px;font-weight:800;color:#141A26;letter-spacing:-.3px;line-height:1.3}#view-appendix .a-ph-s{margin:0;font-size:12.2px;color:#697487;line-height:1.7}#view-appendix .a-fold{margin:0 0 10px;border:1px solid #E6EAF1;border-radius:13px;background:#fff;
+  box-shadow:0 1px 2px rgba(16,24,40,.03),0 14px 26px -24px rgba(16,24,40,.28);overflow:hidden}#view-appendix .a-fold-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;cursor:pointer;
+  padding:13px 46px 13px 16px;position:relative;list-style:none;background:#FCFDFF;transition:.16s}#view-appendix .a-fold-h::-webkit-details-marker{display:none}#view-appendix .a-fold-h::marker{content:""}#view-appendix .a-fold-h:hover{background:#F5F9FE}#view-appendix .a-fold-t{font-size:13.5px;font-weight:800;color:#141A26;white-space:nowrap}#view-appendix .a-fold-t::before{content:"+";display:inline-block;width:15px;margin-right:7px;color:#2D3955;
+  font-weight:800;font-size:14px}#view-appendix .a-fold[open]>.a-fold-h>.a-fold-t::before{content:"−"}#view-appendix .a-fold-q{font-size:11.5px;color:#7C8798;line-height:1.55}#view-appendix .a-fold[open]>.a-fold-h{background:#F2F7FD;border-bottom:1px solid #E6EAF1}#view-appendix .a-fold:not([open])>.a-fold-b{display:none}#view-appendix .a-fold[open]>.a-fold-b{display:block}#view-appendix .a-fold-b{padding:14px 16px 16px}#view-appendix .a-svg{display:block;width:100%;height:auto;overflow:visible;margin:2px 0 10px}#view-appendix .a-tw{overflow:auto;border:1px solid #E6EAF1;border-radius:12px;margin:8px 0 6px;background:#fff}#view-appendix .a-tbl{width:100%;border-collapse:collapse;font-size:11.3px;font-variant-numeric:tabular-nums}#view-appendix .a-tbl caption{caption-side:top;text-align:left;padding:9px 12px;font-size:11.6px;font-weight:700;
+  color:#38425A;background:#F7FAFD;border-bottom:1px solid #E6EAF1}#view-appendix .a-tbl th{position:sticky;top:0;z-index:2;background:#EFF3F9;color:#2D3955;font-weight:800;
+  font-size:10.6px;text-align:left;padding:7px 8px;border-bottom:1px solid #D8DFE9;white-space:nowrap}#view-appendix .a-tbl td{padding:6px 8px;border-bottom:1px solid #F0F3F8;color:#38425A;vertical-align:middle}#view-appendix .a-tbl tbody tr:hover td{background:#FAFCFF}#view-appendix .a-tbl .a-k{color:#141A26;font-weight:700;white-space:nowrap}#view-appendix .a-tbl .a-n{text-align:right;white-space:nowrap}#view-appendix .a-tbl .a-b{font-weight:800;color:#2D3955}#view-appendix .a-tbl .a-src{color:#7C8798;font-size:10.4px}#view-appendix .a-tbl .a-catc{white-space:nowrap;color:#4A5568}#view-appendix .a-tbl-cat{min-width:900px}#view-appendix .a-tbl-bank{min-width:980px}#view-appendix .a-tbl-det{min-width:880px}#view-appendix .a-tbl-def{min-width:820px}#view-appendix .a-dot{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:6px;vertical-align:1px}#view-appendix .a-out{color:#A52524;font-weight:800}#view-appendix .a-edge{color:#B0763F;font-weight:700}#view-appendix .a-lv{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10.4px;font-weight:800}#view-appendix .a-lv-hi{background:#FBEAEA;color:#A52524}#view-appendix .a-lv-mid{background:#FBF1E6;color:#B0763F}#view-appendix .a-lv-lo{background:#EAF4F0;color:#1F7A5C}#view-appendix .a-fn{margin:8px 0 0;padding:0 0 0 17px;font-size:11px;line-height:1.75;color:#697487}#view-appendix .a-fn li{margin:3px 0}#view-appendix .a-fn code,#view-appendix .a-pc-b code{background:#F1F4F9;border-radius:4px;padding:1px 5px;font-size:10.4px;color:#2D3955}#view-appendix .a-pcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:11px;margin:2px 0 4px}#view-appendix .a-pc{border:1px solid #E6EAF1;border-radius:12px;padding:12px 14px;
+  background:linear-gradient(180deg,#fff,#F8FBFF)}#view-appendix .a-pc-t{font-size:12.6px;font-weight:800;color:#141A26;margin-bottom:5px}#view-appendix .a-pc-b{font-size:11.6px;line-height:1.75;color:#4A5568}@media (max-width:760px){#view-appendix .a-fold-h{padding:11px 16px}#view-appendix .a-fold-t{white-space:normal}#view-appendix .a-fold-q{display:block}
+}
+
+
+/* ══════════ 10_overview · 总览看板（第二轮精修）══════════
+   全部规则带 #view-overview 前缀（ID 特异性 > 主题 .ov-card/.vband/.ov-grid）。 */
+
+/* ──────────────────────────────────────────────────────────────
+   任务 A：.vbands 纵向堆叠，每个品种一整行（宽幅总结卡）
+   ────────────────────────────────────────────────────────────── */
+#view-overview .vbands{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:18px !important;
+  grid-template-columns:none !important;
+  margin:14px 0 6px !important;
+}
+#view-overview .vbands > .vband{
+  position:relative;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:16px;
+  width:100% !important;
+  min-width:0 !important;
+  padding:20px 24px 20px 26px !important;
+  border:1px solid rgba(26,34,48,.08) !important;
+  border-left:4px solid var(--ov-accent,#3B4A66) !important;
+  border-radius:16px !important;
+  background:
+    radial-gradient(120% 160% at 0% 0%,
+      color-mix(in srgb, var(--ov-accent,#3B4A66) 9%, transparent) 0%, transparent 58%),
+    linear-gradient(180deg,#FFFFFF 0%,#FCFDFF 100%) !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 14px 30px -22px rgba(16,24,40,.28) !important;
+  overflow:hidden;
+}
+#view-overview .vbands > .vband.ov-v2::after{
+  content:"";position:absolute;right:0;top:0;bottom:0;width:190px;pointer-events:none;
+  background:linear-gradient(270deg,
+    color-mix(in srgb, var(--ov-accent,#3B4A66) 7%, transparent) 0%, transparent 100%);
+}
+/* 顶行（v8）：品种名 │ 单数 │ 发行合计 │ 规模字段完整说明 —— 全部同一水平线 */
+@media (max-width:820px){
+  #view-overview .vbands > .vband{padding:18px !important;gap:14px}
+}
+
+/* A1 · 顶行：全部项目同一水平线（最后一项紧跟「发行合计」右侧） */
+#view-overview .vband .ov-bh,
+#view-overview .vband .ov-bk,
+#view-overview .vband .ov-bsum{position:relative;z-index:1;min-width:0}
+#view-overview .vband .ov-bh{
+  display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;
+  gap:0 12px;                /* 行间距 0，保证同一水平线 */
+}
+#view-overview .vband .ov-bname{
+  font-family:var(--serif,Georgia,serif);
+  font-size:20px;font-weight:700;line-height:1.24;letter-spacing:.4px;
+  color:var(--ov-accent,#2A3446);overflow-wrap:anywhere;
+}
+#view-overview .vband .ov-bn{
+  display:inline-block;font-size:12px;font-weight:700;line-height:1.7;
+  padding:2px 12px;border-radius:999px;white-space:nowrap;
+  color:var(--ov-accent,#3B4A66);
+  background:color-mix(in srgb, var(--ov-accent,#3B4A66) 11%, #fff);
+  border:1px solid color-mix(in srgb, var(--ov-accent,#3B4A66) 30%, transparent);
+}
+#view-overview .vband .ov-br{
+  display:inline-block;font-size:11.5px;font-weight:600;line-height:1.7;
+  padding:1px 10px;border-radius:999px;white-space:nowrap;
+  color:var(--sub,#697487);background:var(--surface,#EDF1F6);
+  border:1px solid rgba(26,34,48,.08);
+}
+/* 规模字段完整说明：紧跟「发行合计」右侧、同一行、字号更小、色更淡 */
+#view-overview .vband .ov-bsub{
+  display:inline-block;
+  font-size:10.5px;line-height:1.7;letter-spacing:.1px;
+  color:var(--mute,#98A2B3);white-space:nowrap;
+}
+
+/* A2 · 下移：关键指标区（左贴框线，6 列 × j 行） */
+#view-overview .vband .ov-bk{
+  display:flex;flex-direction:column;gap:9px;
+  padding-left:0;            /* 与品种名/卡片左边框对齐，不留左侧空白 */
+  align-self:stretch;
+}
+#view-overview .vband .ov-eyebrow{
+  font-size:10.5px;font-weight:700;letter-spacing:1.1px;
+  color:var(--mute,#98A2B3);text-transform:none;
+  padding-left:2px;
+}
+/* 16 项指标 → 6 列 × 3 行（最后一行 4 项，grid 自动左对齐） */
+#view-overview .vband .ov-bgrid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:9px 10px;
+}
+/* 组内极值 4 格：沿用同一 6 列栅格，左对齐 */
+#view-overview .vband .ov-bspot{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:9px 10px;
+}
+@media (max-width:1180px){
+  #view-overview .vband .ov-bgrid,
+  #view-overview .vband .ov-bspot{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+}
+@media (max-width:900px){
+  #view-overview .vband .ov-bgrid,
+  #view-overview .vband .ov-bspot{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+}
+@media (max-width:640px){
+  #view-overview .vband .ov-bgrid,
+  #view-overview .vband .ov-bspot{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+#view-overview .vband .ov-bk-item{
+  display:flex;flex-direction:column;gap:3px;min-width:0;
+  padding:8px 10px 9px 11px;
+  border-radius:11px;
+  background:rgba(245,247,250,.72);
+  border:1px solid rgba(26,34,48,.06);
+  border-left:3px solid color-mix(in srgb, var(--ov-accent,#3B4A66) 34%, transparent);
+}
+#view-overview .vband .ov-bk-item .l{
+  font-size:10.5px;letter-spacing:.2px;line-height:1.35;
+  color:var(--sub,#79849A);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* 口径副行（算术平均 / 规模加权 / 中位数 / 合计 + 样本量 n） */
+#view-overview .vband .ov-bk-item .b{
+  font-size:9.5px;line-height:1.3;letter-spacing:.1px;
+  color:var(--mute,#98A2B3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+#view-overview .vband .ov-bk-item.hi .b{color:var(--sub,#79849A)}
+#view-overview .vband .ov-bk-item.spot .b{color:var(--mute,#98A2B3)}
+#view-overview .vband .ov-bk-item .v{
+  font-size:14px;font-weight:700;line-height:1.3;
+  color:var(--ink,#1A2230);
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  overflow-wrap:anywhere;
+}
+#view-overview .vband .ov-bk-item.hi{background:color-mix(in srgb, var(--ov-accent,#3B4A66) 8%, #fff)}
+#view-overview .vband .ov-bk-item.hi .v{color:var(--ov-accent,#3B4A66)}
+#view-overview .vband .ov-bk-item.spot{
+  background:#fff;
+  border-left-color:var(--ov-accent,#3B4A66);
+}
+#view-overview .vband .ov-bk-item.spot .v{font-size:12.5px;font-weight:600}
+#view-overview .vband .ov-bk-item.spot .v em{font-style:normal;font-weight:700}
+
+/* A3 · 虚线下方：品种总结（整行横排、不限宽、行高 1.7） */
+#view-overview .vband .ov-bsum{
+  display:flex;flex-direction:column;gap:6px;
+  width:100%;max-width:100%;
+  margin-top:2px;padding:11px 2px 2px 2px;
+  border:0;border-top:1px dashed rgba(26,34,48,.16);
+  border-radius:0;background:transparent;
+}
+#view-overview .vband .ov-bsum-h{
+  font-size:10.5px;font-weight:700;letter-spacing:1.1px;
+  color:var(--ov-accent,#3B4A66);
+}
+#view-overview .vband .ov-bsum p{
+  margin:0;font-size:12.5px;line-height:1.7;
+  color:var(--ink2,#38425A);text-align:justify;
+  overflow-wrap:anywhere;
+}
+#view-overview .vband .ov-bsum b{
+  font-weight:700;color:var(--ov-accent,#3B4A66);
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .vband .ov-bsum .nm{font-weight:700;color:var(--ink,#1A2230)}
+#view-overview .vband .ov-bsum-note{
+  margin:0;padding-top:8px;
+  border-top:1px dashed color-mix(in srgb, var(--ov-accent,#3B4A66) 26%, transparent);
+  font-size:10.5px;line-height:1.75;color:var(--mute,#98A2B3);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   任务 B：28 单卡片按「品种 → 银行」聚类，组间明显区隔
+   ────────────────────────────────────────────────────────────── */
+#view-overview .ov-grid{
+  display:block !important;
+  grid-template-columns:none !important;
+  gap:0 !important;
+  margin-top:22px !important;
+}
+#view-overview .ov-grid > .ov-cat-wrap{
+  margin:0 0 34px 0;
+  padding:0;
+}
+#view-overview .ov-grid > .ov-cat-wrap:last-child{margin-bottom:6px}
+#view-overview .ov-grid > .ov-cat-wrap + .ov-cat-wrap{
+  padding-top:26px;
+  border-top:2px solid rgba(26,34,48,.09);
+}
+
+/* B1 · 品种组头 */
+#view-overview .ov-cat-hd{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+  padding:13px 18px 13px 16px;
+  border-radius:14px;
+  border:1px solid color-mix(in srgb, var(--ov-accent,#3B4A66) 24%, transparent);
+  border-left:5px solid var(--ov-accent,#3B4A66);
+  background:linear-gradient(96deg,
+    color-mix(in srgb, var(--ov-accent,#3B4A66) 13%, #fff) 0%,
+    rgba(255,255,255,.94) 62%);
+}
+#view-overview .ov-cat-hd .ov-ch-t{
+  font-family:var(--serif,Georgia,serif);
+  font-size:17px;font-weight:700;letter-spacing:.4px;
+  color:var(--ov-accent,#2A3446);
+}
+#view-overview .ov-cat-hd .ov-ch-n,
+#view-overview .ov-cat-hd .ov-ch-s{
+  display:inline-block;font-size:11.5px;font-weight:600;line-height:1.7;
+  padding:2px 11px;border-radius:999px;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-cat-hd .ov-ch-n{
+  color:var(--ov-accent,#3B4A66);
+  background:color-mix(in srgb, var(--ov-accent,#3B4A66) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--ov-accent,#3B4A66) 30%, transparent);
+}
+#view-overview .ov-cat-hd .ov-ch-s{
+  margin-left:auto;
+  color:var(--ink2,#4B5566);background:rgba(255,255,255,.9);
+  border:1px solid rgba(26,34,48,.1);
+}
+#view-overview .ov-cat-hd .ov-ch-s em{font-style:normal;color:var(--mute,#98A2B3);font-weight:600;margin-right:5px}
+
+/* B2 · 银行小组分隔标签 */
+#view-overview .ov-bank-hd{
+  display:flex;align-items:center;gap:10px;
+  margin:16px 0 11px 2px;
+  font-size:12.5px;font-weight:700;letter-spacing:.3px;
+  color:var(--ink2,#4B5566);
+}
+#view-overview .ov-bank-hd .ov-bh-bar{
+  flex:0 0 16px;height:2px;border-radius:2px;
+  background:color-mix(in srgb, var(--ov-accent,#3B4A66) 62%, transparent);
+}
+#view-overview .ov-bank-hd .ov-bh-n{
+  font-size:11px;font-weight:600;color:var(--sub,#697487);
+  padding:1px 9px;border-radius:999px;
+  background:var(--surface,#EDF1F6);border:1px solid rgba(26,34,48,.07);
+}
+#view-overview .ov-bank-hd::after{
+  content:"";flex:1 1 auto;height:1px;
+  background:linear-gradient(90deg, rgba(26,34,48,.11) 0%, rgba(26,34,48,0) 100%);
+}
+#view-overview .ov-cat-wrap .ov-cat-hd + .ov-bank-hd{margin-top:15px}
+
+/* B3 · 组内卡片栅格：保持每行 3 张 */
+#view-overview .ov-cards{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  align-items:stretch;
+}
+@media (max-width:1100px){
+  #view-overview .ov-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:16px}
+}
+@media (max-width:700px){
+  #view-overview .ov-cards{grid-template-columns:minmax(0,1fr) !important;gap:14px}
+}
+
+/* ──────────────────────────────────────────────────────────────
+   第一轮卡片本体（保持不动；选择器由 .ov-grid > 放宽为 .ov-card，
+   因为卡片现在嵌在 .ov-cards 里）
+   ────────────────────────────────────────────────────────────── */
+#view-overview .ov-card.ov-v2{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  padding:0 !important;
+  border:1px solid rgba(26,34,48,.075) !important;
+  border-top:1px solid rgba(26,34,48,.075) !important;
+  border-radius:16px !important;
+  background:
+    radial-gradient(128% 92% at 100% 0%,
+      color-mix(in srgb, var(--ov-accent) 12%, transparent) 0%, transparent 64%),
+    linear-gradient(180deg,#FFFFFF 0%,#FDFEFF 100%);
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 22px -16px rgba(16,24,40,.22);
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .32s var(--ease,cubic-bezier(.16,.68,.42,1)),
+             box-shadow .32s var(--ease,cubic-bezier(.16,.68,.42,1)),
+             border-color .32s var(--ease,cubic-bezier(.16,.68,.42,1));
+}
+/* 左侧品种色边条 */
+#view-overview .ov-card.ov-v2::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2;
+  background:linear-gradient(180deg,
+    var(--ov-accent) 0%,
+    color-mix(in srgb, var(--ov-accent) 40%, transparent) 100%);
+}
+/* 顶部渐隐品种色 */
+#view-overview .ov-card.ov-v2::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:76px;pointer-events:none;
+  background:linear-gradient(180deg,
+    color-mix(in srgb, var(--ov-accent) 10%, transparent) 0%, transparent 100%);
+}
+#view-overview .ov-card.ov-v2:hover{
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb, var(--ov-accent) 52%, transparent) !important;
+  box-shadow:0 2px 4px rgba(16,24,40,.06),
+             0 18px 34px -18px color-mix(in srgb, var(--ov-accent) 40%, rgba(16,24,40,.35));
+}
+#view-overview .ov-card.ov-v2:focus-visible{
+  outline:2px solid color-mix(in srgb, var(--ov-accent) 62%, transparent);
+  outline-offset:2px;
+}
+
+/* 卡片标题行 */
+#view-overview .ov-v2 .ov-hd{
+  position:relative;z-index:1;
+  display:flex;gap:11px;align-items:stretch;
+  padding:17px 18px 14px 21px;
+  border-bottom:1px solid rgba(26,34,48,.055);
+}
+#view-overview .ov-v2 .ov-bar{
+  flex:0 0 3px;border-radius:999px;min-height:38px;opacity:.95;
+}
+#view-overview .ov-v2 .ov-ht{flex:1 1 auto;min-width:0}
+#view-overview .ov-v2 .oname{
+  font-family:var(--serif,Georgia,serif);
+  font-size:15.5px;font-weight:700;line-height:1.34;
+  letter-spacing:.2px;color:var(--ink,#1A2230);
+  overflow-wrap:anywhere;
+}
+#view-overview .ov-v2 .ov-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#view-overview .ov-v2 .obank,
+#view-overview .ov-v2 .vchip{
+  display:inline-block;font-size:10.5px;font-weight:600;line-height:1.65;
+  padding:1px 9px;border-radius:9px;white-space:nowrap;
+}
+#view-overview .ov-v2 .obank{
+  color:var(--ink2,#4B5566) !important;
+  background:var(--surface,#F5F7FA) !important;
+  border:1px solid rgba(26,34,48,.09) !important;
+  margin-top:0 !important;
+}
+#view-overview .ov-v2 .vchip{
+  color:var(--ov-accent,#3B4A66) !important;
+  background:color-mix(in srgb, var(--ov-accent,#3B4A66) 10%, #fff) !important;
+  border:1px solid color-mix(in srgb, var(--ov-accent,#3B4A66) 26%, transparent) !important;
+}
+/* ③ 达成率 < 80% 的卡片：中性标记「证券端已兑付完毕」（避免被误读为未兑付） */
+#view-overview .ov-v2 .obadge{
+  display:inline-block;font-size:10px;font-weight:600;line-height:1.65;
+  padding:1px 8px;border-radius:9px;white-space:nowrap;
+  color:#31506B;background:#EDF3F8;border:1px dashed #B9CBDA;
+  cursor:help;
+}
+
+/* 2 列 × 4 行 信息栅格 */
+#view-overview .ov-v2 .ov-body{
+  position:relative;z-index:1;
+  flex:1 1 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  padding:6px 16px 4px 16px;
+}
+#view-overview .ov-v2 .ov-k{
+  display:flex;align-items:baseline;justify-content:space-between;gap:9px;
+  min-width:0;
+  padding:9px 12px 8px 6px;
+  border-bottom:1px dashed rgba(26,34,48,.07);
+}
+#view-overview .ov-v2 .ov-k:nth-child(even){
+  padding-left:15px;
+  border-left:1px solid rgba(26,34,48,.065);
+}
+#view-overview .ov-v2 .ov-k:nth-last-child(-n+2){border-bottom:none}
+#view-overview .ov-v2 .ov-kl{
+  font-size:11px;letter-spacing:.2px;white-space:nowrap;
+  color:var(--sub,#79849A);
+}
+#view-overview .ov-v2 .ov-kv{
+  font-size:13.5px;font-weight:600;white-space:nowrap;
+  color:var(--ink,#1A2230);
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+}
+#view-overview .ov-v2 .ov-k.hi .ov-kv{color:var(--ov-accent,#3B4A66)}
+#view-overview .ov-v2 .ov-k.hi .ov-kl{color:var(--ink2,#4B5566)}
+
+/* 底部 meta 条（支付期 / 存续 / 处置费率） */
+#view-overview .ov-v2 .ov-foot{
+  margin-top:auto;
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px 16px;
+  padding:11px 18px 13px 21px;
+  border-top:1px solid rgba(26,34,48,.06);
+  background:linear-gradient(180deg, rgba(245,247,250,0) 0%, rgba(245,247,250,.72) 100%);
+  font-size:11px;color:var(--ink3,#79849A);
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-v2 .ov-foot .ov-fk{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
+#view-overview .ov-v2 .ov-foot em{font-style:normal;color:var(--ink4,#A6AFBE)}
+#view-overview .ov-v2 .ov-foot b{font-weight:600;color:var(--ink2,#4B5566)}
+
+/* ──────────────────────────────────────────────────────────────
+   v8 · 筛选条（年份 / 发起机构 / 品种切片，多选，选中即重算下方全部内容）
+   风格：墨色 + 纸面 + 细线；与提示条同一视觉体系
+   ────────────────────────────────────────────────────────────── */
+#view-overview .ov-flt{
+  display:flex;flex-direction:column;gap:7px;
+  margin:14px 0 2px;padding:11px 14px 12px 14px;
+  border:1px solid rgba(26,34,48,.1);border-radius:14px;
+  background:linear-gradient(180deg,#FDFEFF 0%,#F7F9FC 100%);
+}
+#view-overview .ov-flt-hd{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+#view-overview .ov-flt-t{
+  font-size:11.5px;font-weight:700;letter-spacing:.8px;color:#4B5566;
+  padding-left:1px;
+}
+#view-overview .ov-flt-hit{
+  font-size:11.5px;font-weight:700;line-height:1.7;color:#2A3446;
+  padding:0 10px;border-radius:999px;
+  background:#EDF1F6;border:1px solid rgba(26,34,48,.09);
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-flt-reset{
+  margin-left:auto;
+  font:inherit;font-size:11px;line-height:1.8;color:#697487;
+  padding:0 11px;border-radius:999px;cursor:pointer;
+  background:#fff;border:1px solid rgba(26,34,48,.14);
+}
+#view-overview .ov-flt-reset:hover{color:#2A3446;border-color:rgba(26,34,48,.3)}
+#view-overview .ov-flt-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding-top:6px;border-top:1px solid rgba(26,34,48,.055);
+}
+#view-overview .ov-flt-row:first-of-type{border-top:0;padding-top:2px}
+#view-overview .ov-flt-lab{
+  flex:0 0 58px;font-size:11px;font-weight:700;letter-spacing:.5px;color:#98A2B3;
+}
+#view-overview .ov-flt-chips{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+#view-overview .ov-flt-c{
+  font:inherit;font-size:11.5px;line-height:1.85;cursor:pointer;
+  padding:0 9px;border-radius:999px;white-space:nowrap;
+  color:#38425A;background:#fff;
+  border:1px solid rgba(26,34,48,.13);
+  transition:background .16s var(--ease,cubic-bezier(.16,.68,.42,1)),
+             border-color .16s var(--ease,cubic-bezier(.16,.68,.42,1)),
+             color .16s var(--ease,cubic-bezier(.16,.68,.42,1));
+}
+#view-overview .ov-flt-c:hover{border-color:rgba(26,34,48,.3)}
+#view-overview .ov-flt-c .kc{
+  font-size:10px;font-weight:600;color:#98A2B3;margin-left:4px;
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-flt-c[aria-pressed="true"]{
+  color:#fff;background:#2D3955;border-color:#2D3955;font-weight:700;
+}
+#view-overview .ov-flt-c[aria-pressed="true"] .kc{color:rgba(255,255,255,.72)}
+#view-overview .ov-flt-c[aria-pressed="false"] .kc{color:#A6AFBE}
+#view-overview .ov-flt-all{
+  font:inherit;font-size:10.5px;line-height:1.8;cursor:pointer;
+  padding:0 8px;border-radius:6px;color:#697487;
+  background:transparent;border:1px dashed rgba(26,34,48,.2);
+}
+#view-overview .ov-flt-all:hover{color:#2A3446;border-color:rgba(26,34,48,.36)}
+/* 清空：仅该维有选中时出现 */
+#view-overview .ov-flt-clr{
+  display:none;
+  font:inherit;font-size:10.5px;line-height:1.8;cursor:pointer;
+  padding:0 8px;border-radius:6px;color:#A52524;
+  background:transparent;border:1px dashed rgba(165,37,36,.32);
+}
+#view-overview .ov-flt-clr.on{display:inline-block}
+#view-overview .ov-flt-clr:hover{border-color:rgba(165,37,36,.6);background:rgba(165,37,36,.05)}
+#view-overview .ov-flt-cnt{
+  font-size:10.5px;color:#A6AFBE;letter-spacing:.2px;
+  font-variant-numeric:tabular-nums;margin-left:2px;
+}
+#view-overview .ov-flt-cnt.on{color:#2D3955;font-weight:700}
+#view-overview .ov-flt-tip{
+  font-size:10.5px;line-height:1.7;color:#A6AFBE;
+}
+@media (prefers-reduced-motion: reduce){
+  #view-overview .ov-flt-c{transition:none !important}
+}
+
+/* 筛选隐藏 / 空态 */
+#view-overview .ov-flt-off{display:none !important}
+#view-overview .ov-empty{
+  margin:16px 0 6px;padding:26px 18px;text-align:center;
+  border:1px dashed rgba(26,34,48,.18);border-radius:14px;
+  background:#FBFCFE;color:#697487;font-size:12.5px;line-height:1.8;
+}
+#view-overview .ov-empty b{color:#2A3446;font-weight:700}
+
+/* ──────────────────────────────────────────────────────────────
+   口径提示条（③ 达成率≠证券兑付率 / ⑤ 语义色）
+   ────────────────────────────────────────────────────────────── */
+#view-overview .ov-ovnote{
+  display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;
+  margin:14px 0 4px;
+}
+@media (max-width:900px){#view-overview .ov-ovnote{grid-template-columns:minmax(0,1fr)}}
+#view-overview .ov-ovnote .ov-ni{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:11px 15px 12px 14px;
+  border-radius:12px;
+  background:linear-gradient(180deg,#FBFCFE 0%,#F6F8FB 100%);
+  border:1px solid rgba(26,34,48,.09);
+  border-left:3px solid #8A94A6;
+}
+#view-overview .ov-ovnote .ov-ni:last-child{border-left-color:#A9B2C0}
+#view-overview .ov-ovnote .ov-ntag{
+  flex:0 0 auto;font-size:10px;font-weight:700;line-height:1.9;
+  letter-spacing:.4px;color:#4B5566;
+  padding:0 8px;border-radius:6px;white-space:nowrap;
+  background:rgba(26,34,48,.07);
+}
+#view-overview .ov-ovnote p{
+  margin:0;font-size:11.5px;line-height:1.78;color:var(--ink2,#4B5566);text-align:justify;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ④ 数据质量汇总（28 单热力小格）
+   ────────────────────────────────────────────────────────────── */
+#view-overview .ov-dq{
+  margin:26px 0 4px;
+  padding:15px 17px 16px;
+  border-radius:14px;
+  border:1px solid rgba(26,34,48,.09);
+  background:linear-gradient(180deg,#FDFEFF 0%,#F7F9FC 100%);
+}
+#view-overview .ov-dq-hd{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:12px;
+}
+#view-overview .ov-dq-t{
+  font-family:var(--serif,Georgia,serif);
+  font-size:15px;font-weight:700;letter-spacing:.3px;color:var(--ink,#1A2230);
+}
+#view-overview .ov-dq-n{
+  font-size:11px;font-weight:600;color:var(--sub,#697487);
+  padding:1px 9px;border-radius:999px;
+  background:var(--surface,#EDF1F6);border:1px solid rgba(26,34,48,.07);
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-dq-sum{
+  margin-left:auto;font-size:11px;color:var(--sub,#697487);line-height:1.7;
+  font-variant-numeric:tabular-nums;
+}
+#view-overview .ov-dq-legend{
+  display:flex;align-items:center;gap:6px;font-size:10px;color:var(--mute,#98A2B3);
+}
+#view-overview .ov-dq-legend i{
+  font-style:normal;display:inline-block;width:11px;height:11px;border-radius:3px;
+  border:1px solid rgba(26,34,48,.12);
+}
+#view-overview .ov-dq-legend i.lv0{background:#DFF0E6}
+#view-overview .ov-dq-legend i.lv1{background:#F2EBD6}
+#view-overview .ov-dq-legend i.lv2{background:#F6DCC9}
+#view-overview .ov-dq-legend i.lv3{background:#EFC9C7}
+#view-overview .ov-dq-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:6px;
+}
+#view-overview .ov-dq-c{
+  display:flex;align-items:baseline;justify-content:space-between;gap:6px;
+  min-width:0;padding:6px 8px 7px 8px;border-radius:8px;
+  border:1px solid rgba(26,34,48,.07);
+  background:#fff;cursor:help;
+  transition:transform .18s var(--ease,cubic-bezier(.16,.68,.42,1)),box-shadow .18s var(--ease);
+}
+#view-overview .ov-dq-c:hover{transform:translateY(-1px);box-shadow:0 3px 10px -4px rgba(16,24,40,.24)}
+#view-overview .ov-dq-c .nm{
+  font-size:10px;line-height:1.35;color:var(--ink2,#4B5566);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
+}
+#view-overview .ov-dq-c .n{
+  flex:0 0 auto;font-size:10px;font-weight:700;line-height:1.5;
+  font-variant-numeric:tabular-nums;color:var(--ink,#1A2230);
+}
+#view-overview .ov-dq-c.lv0{background:#F1F8F4;border-color:#CDE6D8}
+#view-overview .ov-dq-c.lv1{background:#FCF8EC;border-color:#EADFC2}
+#view-overview .ov-dq-c.lv2{background:#FCF1E9;border-color:#EFD3BE}
+#view-overview .ov-dq-c.lv3{background:#FBEBEA;border-color:#EDCFCC}
+#view-overview .ov-dq-c.afx{box-shadow:inset 0 0 0 1px rgba(165,37,36,.32)}
+#view-overview .ov-dq-c .fx{
+  font-size:9px;font-weight:700;color:#A52524;letter-spacing:.2px;
+}
+#view-overview .ov-dq-foot{
+  margin-top:9px;font-size:10px;line-height:1.7;color:var(--mute,#98A2B3);
+}
+
+@media (prefers-reduced-motion: reduce){
+  #view-overview .ov-card.ov-v2{transition:none !important}
+  #view-overview .ov-card.ov-v2:hover{transform:none !important}
+  #view-overview .ov-dq-c{transition:none !important}
+  #view-overview .ov-dq-c:hover{transform:none !important}
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   20_profile —— 项目档案：5 类归组（①资产池情况 ②集中度与账龄
+   ③预期回收与发行结构 ④实际回收与处置 ⑤实际收益与期限）
+   只使用 .pf-* 前缀，避免与既有 .kpi / .kpis 样式串味
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── A. 指标条：沿用 .kpis.kpi-strip 的 DOM 钩子，放 ① + ④ 两类 ── */
+.kpis.pf-strip{
+  --grad-soft:linear-gradient(180deg,#fff,#FAFBFE 62%,#F5F8FC); /* 局部锁定渐变（基线 --grad-soft 为 none） */
+  display:grid!important;grid-template-columns:1fr 1fr!important;gap:0!important;
+  padding:0!important;margin:14px 0 16px!important;
+  background:var(--grad-soft)!important;
+  border:1px solid var(--line2)!important;border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.30)!important;
+  overflow:hidden!important;
+}
+.pf-sgrp{padding:12px 13px 13px;border-right:1px solid var(--line2);min-width:0}
+.pf-sgrp:last-child{border-right:0}
+.pf-scap{display:flex;align-items:center;gap:7px;margin:0 0 9px;font-size:11px;font-weight:700;
+  color:var(--ink3);letter-spacing:.05em}
+.pf-snum{
+  width:19px;height:19px;border-radius:5px;background:var(--grad);color:#fff;font-style:normal;
+  font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;box-shadow:0 1px 2px rgba(16,24,40,.20);
+}
+.pf-cells{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2);border-radius:11px;overflow:hidden}
+.pf-c{padding:9px 11px 10px;background:#fff;min-width:0;position:relative;
+  transition:background .24s var(--ease),box-shadow .24s var(--ease)}
+.pf-c:hover{background:var(--hover,#F7F9FC)}
+.pf-c.pf-2{grid-column:1/-1}
+/* v8：① 的合并格（主体户数 / 资产笔数）—— 两个 label 并排、值一行双值 */
+.pf-c.pf-merged .pf-ck{display:flex;align-items:center;gap:3px}
+.pf-ck-i{white-space:nowrap}
+.pf-ck-s{color:var(--ink4,#98A2B3);font-weight:500;margin:0 1px}
+.pf-c.pf-merged .pf-cv{font-size:15px;letter-spacing:-.02em;white-space:nowrap}
+.pf-ck{font-size:10.5px;font-weight:600;color:var(--ink3);letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-ck small{font-weight:500;color:var(--ink4);margin-left:3px}
+.pf-cv{font-size:19px;font-weight:650;line-height:1.16;letter-spacing:-.01em;margin-top:3px;
+  color:var(--ink);font-variant-numeric:tabular-nums;word-break:break-all}
+.pf-cv small{font-size:11px;font-weight:500;color:var(--ink3);margin-left:3px}
+.pf-cn{font-size:10.5px;color:var(--ink4);line-height:1.45;margin-top:4px}
+.pf-na{color:var(--ink4)!important;font-weight:500!important}
+
+/* ── B. 分区面板：替换原文 23 个方格 ──
+   v6：③④ 改为严格 6/6 对称（各占一半，等宽等高）；⑤ 通栏 */
+.kpis.pf-panels{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:14px!important;
+  padding:0!important;margin:0 0 18px!important;background:transparent!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;
+}
+.pf-panel{
+  --grad-soft:linear-gradient(180deg,#fff,#FAFBFE 62%,#F5F8FC);
+  grid-column:span 1;min-width:0;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:var(--grad-soft);
+  border:1px solid var(--line2);border-radius:16px;
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.30);
+}
+/* ③④ 各占 1 栏（严格等宽）；字段多寡只在面板内部消化，不外扩 */
+.pf-panel.pf-7,
+.pf-panel.pf-5{grid-column:span 1}
+.pf-panel.pf-wide{grid-column:1/-1}    /* ⑤ 实际收益与期限（含 7 步时间轴） */
+.pf-panel>.pf-rows{flex:1 1 auto}       /* 让 ③④ 等高：内容少的自动补满 */
+.pf-ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 14px;
+  border-bottom:1px solid var(--line2);
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.40))}
+.pf-pt{font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+.pf-pm{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
+.pf-badge{font-size:10.5px;font-weight:600;color:var(--ink2);background:rgba(45,57,85,.045);
+  border:1px solid var(--line2);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pf-badge.pf-on{color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);
+  border-color:var(--accent-line)}
+.pf-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line2)}
+.pf-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"k v" "n n";
+  gap:2px 9px;padding:10px 13px 11px;background:#fff;position:relative;min-width:0;
+  transition:background .24s var(--ease);
+}
+.pf-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent);
+  opacity:0;transition:opacity .24s var(--ease)}
+.pf-row:hover{background:var(--hover,#F7F9FC)}
+.pf-row:hover::before{opacity:.85}
+.pf-row.pf-wide{grid-column:1/-1;grid-template-columns:minmax(0,1fr);grid-template-areas:"k" "v"}
+.pf-rk{grid-area:k;font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-rv{grid-area:v;font-size:16.5px;font-weight:650;line-height:1.2;letter-spacing:-.01em;
+  color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pf-rv small{font-size:10.5px;font-weight:500;color:var(--ink3);margin-left:2px}
+.pf-row.pf-wide .pf-rv{text-align:left;white-space:normal;font-size:12.5px;font-weight:600;
+  line-height:1.5;color:var(--ink2)}
+.pf-tx{font-size:12.5px;font-weight:600;color:var(--ink2);line-height:1.5}
+.pf-rn{grid-area:n;font-size:10.5px;color:var(--ink4);line-height:1.45}
+.pf-row.pf-warn .pf-rn{color:var(--warn)}
+
+/* ── B5. ② 集中度：字段字典（默认收起）+ 未披露态 ── */
+.pf-rows.pf-rows8{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pf-row.pf-undisclosed .pf-rv{color:var(--ink4);font-weight:500;font-size:12.5px;
+  white-space:normal;letter-spacing:0}
+.pf-dict{margin:10px 0 0;border-top:1px solid var(--line2);padding-top:8px}
+.pf-dict>summary{
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.03em;
+  padding:3px 0;user-select:none;
+}
+.pf-dict>summary::-webkit-details-marker{display:none}
+.pf-dict>summary::before{content:"▸";font-size:9px;color:var(--ink4);transition:transform .2s var(--ease)}
+.pf-dict[open]>summary::before{transform:rotate(90deg)}
+.pf-dict>summary:hover{color:var(--ink2)}
+.pf-dict .pf-dtb{width:100%;border-collapse:collapse;margin:6px 0 2px;font-size:10.5px;
+  table-layout:fixed}
+.pf-dict .pf-dtb th{text-align:left;font-weight:600;color:var(--ink4);padding:3px 4px;
+  border-bottom:1px solid var(--line2);letter-spacing:.02em}
+.pf-dict .pf-dtb td{padding:4px;color:var(--ink2);border-bottom:1px solid var(--line1,#EEF1F6);
+  vertical-align:top;line-height:1.45}
+.pf-dict .pf-dtb tr:last-child td{border-bottom:0}
+.pf-dict .pf-dtb .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pf-dict .pf-dtb .dn{color:var(--ink);font-weight:600}
+.pf-dict .pf-ok{color:var(--neg,#1F7A5C)}
+.pf-dict .pf-mid{color:var(--warn,#B0763F)}
+.pf-dict .pf-low{color:var(--mute,#98A2B3)}
+.pf-dict .pf-none{color:var(--mute,#98A2B3);font-style:normal}
+.pf-dict .pf-dfoot{font-size:10px;color:var(--ink4);line-height:1.5;padding:5px 4px 0}
+
+/* ── B6. 时间轴（⑤ 实际收益与期限内）：7 步横向步骤条 ── */
+.pf-tl{display:flex;padding:20px 16px 15px;overflow-x:auto;border-bottom:1px solid var(--line2)}
+.pf-ts{position:relative;flex:1 1 0;min-width:112px;text-align:center;padding:0 4px}
+.pf-ts::before{content:'';position:absolute;left:-50%;right:50%;top:12px;height:2px;
+  background:var(--line2)}
+.pf-ts:first-child::before{display:none}
+.pf-tdot{position:relative;z-index:1;display:block;width:11px;height:11px;border-radius:50%;
+  margin:0 auto 9px;background:var(--accent);box-shadow:0 0 0 4px #fff}
+.pf-ts[data-t="sen"] .pf-tdot{background:var(--navy)}
+.pf-ts[data-t="sub"] .pf-tdot{background:var(--pos)}
+.pf-ts.miss .pf-tdot{background:var(--mute)}
+.pf-tlab{display:block;font-size:10.5px;font-weight:600;color:var(--ink3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-tval{display:block;font-size:12.5px;font-weight:650;color:var(--ink);margin-top:3px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.pf-ts.miss .pf-tval{color:var(--mute);font-weight:500}
+
+/* ── B5. 面板底部：仅「归属目录 / 项目主键」小字（其余元数据已在上方覆盖）── */
+.pf-meta{display:flex;flex-wrap:wrap;gap:3px 10px;align-items:baseline;
+  padding:9px 14px 10px;border-top:1px solid var(--line2);background:rgba(255,255,255,.55)}
+.pf-mk{font-size:10px;font-weight:600;color:var(--ink4);letter-spacing:.04em}
+.pf-mv{font-size:10.5px;color:var(--ink3);word-break:break-all;margin-right:8px}
+
+/* ── B6. 冗余元数据条（归属目录/项目主键/设立日/清算日/是否回购/银行分组）──
+   已全部在 ①②⑤ 内覆盖，整条隐藏；DOM 保留，避免影响其他脚本 */
+.infolist.pf-meta-hidden{display:none!important}
+
+/* ── C. 「缺失材料」note：不是重点信息，隐藏但保留 DOM（幂等）──
+   精确限定：JS 只给**文本以「缺失材料」开头**的 .note 打上 pf-missing-hidden；
+   该 class 只会被写进 #view-pN 单项目视图内，故 `.note.pf-missing-hidden`
+   天然只在项目视图生效，不会波及 #view-overview / .hsum.hsum2 等其它节点。 */
+[class~="view"] .note.pf-missing-hidden,
+.note.pf-missing-hidden{display:none!important}
+
+/* ── 响应式 ── */
+@media(max-width:1100px){
+  .kpis.pf-panels{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .pf-panel.pf-wide{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .kpis.pf-strip{grid-template-columns:1fr!important}
+  .pf-sgrp{border-right:0!important;border-bottom:1px solid var(--line2)}
+  .pf-sgrp:last-child{border-bottom:0}
+  .kpis.pf-panels{grid-template-columns:1fr!important}
+  .pf-panel,.pf-panel.pf-wide{grid-column:1/-1}
+  .pf-rows{grid-template-columns:1fr}
+  .pf-row.pf-wide{grid-column:auto}
+  .pf-tl::before{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .pf-c,.pf-row,.pf-cv{transition:none!important}
+}
+
+
+/* ===== 50_charts：折线图重绘 / 单位统一 / 图种多样化（点 6 + 点 8）===== */
+.v2c-svg{width:100%!important;height:auto!important;max-width:100%;display:block;overflow:visible}
+.v2c-hit,.v2c-dot-hit{fill:transparent;fill-opacity:0;cursor:crosshair}
+.v2c-hit:hover{fill:rgba(45,57,85,.045);cursor:crosshair}
+.v2c-band{fill:transparent;fill-opacity:0;cursor:pointer}
+.v2c-band:hover{fill:rgba(45,57,85,.05)}
+.v2c-guide{opacity:0;transition:opacity .14s cubic-bezier(.16,.68,.42,1)}
+.v2c-guide.on{opacity:.85}
+.v2c-dot{transition:r .12s cubic-bezier(.16,.68,.42,1)}
+.v2c-ax{font-size:11px;fill:#697487;font-variant-numeric:tabular-nums}
+.v2c-ax-x{font-size:11px;fill:#697487}
+.v2c-note{font-size:10.5px;fill:#98A2B3;letter-spacing:.01em}
+.v2c-anno{font-size:11px;fill:#38425A;font-weight:600}
+.v2c-anno-sub{font-size:10.5px;fill:#697487}
+.v2c-leg{font-size:11px;fill:#38425A}
+/* v7：并入档位末次兑付后的时间轴（9 节点不拥挤；同档浅→深 + 短连接线）*/
+.dist-grid .chart>.ct,.dist-grid .chart>.ct2{font-size:12px!important}
+.v2c-dist-note{margin:6px 0 0;padding:4px 0 4px 9px;border-left:3px solid var(--warn,#B0763F);
+  font-size:9.5px;line-height:1.55;color:var(--mute,#98A2B3)}
+.v2c-dist-note b{font-weight:700;color:var(--warn,#B0763F)}
+.v2c-dist-note-wide{grid-column:1/-1;margin:2px 0 10px!important;width:100%;box-sizing:border-box}
+/* v9.2：口径行（标题下）与图型说明（图下）走 HTML，SVG 内不再放，物理上不会与旋转标签重叠 */
+.v9-meta{font-size:9.5px;line-height:1.35;color:#98A2B3;margin:1px 0 3px;font-variant-numeric:tabular-nums}
+.v9-foot{font-size:9.5px;line-height:1.35;color:#98A2B3;margin:6px 0 0;padding-top:3px;border-top:1px dashed #EDF1F7}
+.pf-tl[data-v2c-tl="1"] .pf-ts{min-width:96px}
+.pf-tl[data-v2c-tl="1"] .pf-tlab{white-space:nowrap}
+.pf-tl[data-v2c-tl="1"] .pf-tval{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pf-ts .pf-tdot{background:var(--v2c-dot,var(--accent))!important}
+.pf-ts.v2c-tl-tier::before{background:var(--v2c-line,var(--line2))!important}
+.pf-ts.v2c-tl-act .pf-tlab{font-weight:700}
+.pf-ts.v2c-tl-act .pf-tval{color:var(--ink2)}
+[data-v2c-hidden="1"]{display:none!important}
+/* v7：瀑布图例（单行等距，与单位徽章留白；超出则两行）*/
+.v2c-wfleg{font-size:9.5px}
+.v2c-tag{margin-left:8px;padding:1px 7px;border-radius:6px;font-size:10.5px;font-weight:400;
+  color:#697487;background:#EDF1F6;border:1px solid rgba(26,34,48,.06);white-space:nowrap;vertical-align:1px}
+.v2c-seg{transition:opacity .14s cubic-bezier(.16,.68,.42,1)}
+.v2c-seg:hover{opacity:.86;cursor:pointer}
+caption.v2c-cap{caption-side:top;text-align:right;font-size:11px;color:#98A2B3;padding:0 0 6px;letter-spacing:.01em}
+.v2c-units{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:0 0 14px;
+  padding:10px 14px;border-radius:12px;background:#F7FAFD;border:1px solid rgba(26,34,48,.07);
+  font-size:12px;color:#38425A}
+.v2c-units b{font-size:12.5px;color:#141A26;margin-right:2px}
+.v2c-units span{padding:1px 8px;border-radius:999px;background:#EDF1F6;color:#697487}
+@keyframes v2cDraw{from{stroke-dashoffset:1400}to{stroke-dashoffset:0}}
+.v2c-anim{stroke-dasharray:1400;stroke-dashoffset:1400;animation:v2cDraw 1.05s cubic-bezier(.16,.68,.42,1) forwards}
+@media (prefers-reduced-motion: reduce){.v2c-anim{animation:none;stroke-dasharray:none;stroke-dashoffset:0}}
+
+
+/* ===== 60_assets：资产池维度区（圆环重排 / 单类目转表 / 卡片均衡 / 维度②③ 缩放）===== */
+[data-chart="donut"] svg,
+[data-chart="hbar"] svg,
+[data-chart="treemap"] svg,
+[data-chart="recon-line"] svg,
+[data-chart="tranche-line"] svg,
+[data-chart="grouped-bar"] svg,
+[data-chart="waterfall"] svg{width:100%!important;height:auto!important;max-width:100%!important;display:block}
+/* C：同排卡片不被等高拉伸，各卡高度按内容自适应 */
+.dist-grid{align-items:start!important}
+.dist-grid>.chart{align-self:start!important;height:auto!important;min-height:0!important;margin-bottom:0!important}
+.dist-grid>.chart .ct{flex:0 0 auto}
+/* v7：⑥ 分布图改「3+3+2+2」等高管排（行内等高、行间等高、2 张行撑满整行）*/
+/* 容器：行等分（grid-auto-rows:1fr 让 4 行等高）；行内列 stretch 让同排等高 */
+.dist-grid[data-v6-rows]{display:grid!important;grid-template-columns:1fr!important;
+  grid-auto-rows:1fr!important;gap:10px!important;align-items:stretch!important}
+.v6-row{display:grid;gap:10px;align-items:stretch;min-height:0}
+.v6-row[data-cols="3"]{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.v6-row[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.v6-row>.chart{align-self:stretch!important;height:100%!important;min-height:0!important;
+  margin-bottom:0!important;box-sizing:border-box;
+  display:flex;flex-direction:column;justify-content:flex-start}
+.v6-row>.chart>.ct,.v6-row>.chart>.ct2,.v6-row>.chart>.note{flex:0 0 auto}
+.v6-row>.chart>svg{flex:0 0 auto!important;min-height:0!important;margin-left:auto;margin-right:auto;max-height:100%;overflow:visible}
+/* D：③节 分期节奏——两张图并排，一屏看更多；窄屏自动落回单列 */
+.v6-duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px;align-items:start;margin:0 0 14px}
+.v6-duo>.chart{margin-bottom:0!important}
+/* D：④节 瀑布/分档——限宽，既缩小占屏又保持 ≥1.0 放大（刻度不糊） */
+.v6-cap>svg{max-width:900px;margin:0 auto}
+/* A：环 + 图例同一画布，图例数值列右对齐到内边距内 */
+.v6-donut{overflow:visible}
+.v6-lg{font-size:10px;fill:#38425A}
+.v6-lv{font-size:10px;fill:#697487;font-variant-numeric:tabular-nums}
+.v6-lc{font-size:10px;fill:#98A2B3}
+.v6-ln{stroke:rgba(26,34,48,.07);stroke-width:1}
+.v6-ct{font-size:10px;fill:#98A2B3}
+.v6-cv{font-size:13px;font-weight:700;fill:#141A26;font-variant-numeric:tabular-nums}
+.v6-arc{transition:opacity .16s cubic-bezier(.16,.68,.42,1)}
+.v6-arc:hover{opacity:.86}
+/* B：单一取值维度汇总表（放在本节开篇） */
+.v6-solo{margin:12px 0 14px;border:1px solid rgba(26,34,48,.08);border-radius:12px;overflow:hidden;background:#fff}
+.v6-solo table{width:100%;border-collapse:collapse;font-size:12.5px;color:#38425A}
+.v6-solo caption{caption-side:top;text-align:left;padding:9px 13px;font-size:12px;color:#697487;
+  background:#F7FAFD;border-bottom:1px solid rgba(26,34,48,.06)}
+.v6-solo th,.v6-solo td{padding:7px 13px;border-bottom:1px solid rgba(26,34,48,.06);text-align:left;vertical-align:middle}
+.v6-solo th{font-weight:600;color:#141A26;background:#FBFCFE;white-space:nowrap}
+.v6-solo tr:last-child td,.v6-solo tr:last-child th{border-bottom:0}
+.v6-solo td.n,.v6-solo th.n{text-align:right;font-variant-numeric:tabular-nums}
+.v6-solo .v6-dim{color:#141A26;font-weight:600}
+.v6-axis-cap{font-size:10px;fill:#98A2B3}
+.v6-xlabel{font-size:10.5px;fill:#697487;font-variant-numeric:tabular-nums}
+/* 全局口径说明条（HTML 导出块用） */
+.v6-note{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:0 0 14px;padding:10px 14px;
+  border-radius:12px;background:#F7FAFD;border:1px solid rgba(26,34,48,.07);font-size:12px;color:#38425A}
+.v6-note b{font-size:12.5px;color:#141A26;margin-right:2px}
+.v6-note span{padding:1px 8px;border-radius:999px;background:#EDF1F6;color:#697487}
+@media (max-width:760px){.v6-cap>svg{max-width:100%}}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   70_wording —— 文案改写用到的少量样式（只新增，不覆盖其他模块）
+   ══════════════════════════════════════════════════════════════════ */
+.w-ext{
+  margin:6px 0 0;padding:6px 10px;border-left:3px solid var(--accent-line,#D5D9E2);
+  background:rgba(45,57,85,.035);border-radius:0 7px 7px 0;
+  font-size:12px;line-height:1.6;color:var(--ink2,#38425A);
+}
+.w-ext b{font-weight:650;color:var(--ink,#141A26)}
+/* 数据质量三段式 */
+.dq3{margin:0}
+.dq3 .dq-sec{margin:0 0 9px}
+.dq3 .dq-sec:last-child{margin-bottom:0}
+.dq3 .dq-t{font-weight:700;color:var(--ink,#141A26);margin:0 0 3px;font-size:12.5px}
+.dq3 .dq-b{font-size:12.5px;line-height:1.65;color:var(--ink2,#38425A)}
+/* ⑦ 数据质量一行摘要 */
+.w-dqsum{font-size:12.5px;line-height:1.7;color:var(--ink2,#38425A)}
+.w-dqsum::before{content:"";display:inline-block;width:3px;height:11px;margin-right:7px;
+  border-radius:2px;background:var(--accent-line,#D5D9E2);vertical-align:-1px}
+/* 分配矩阵：占回收流入 >100% 的口径提示 */
+.w-alloc-note{margin:8px 0 0;padding:7px 11px;border-left:3px solid var(--warn,#B0763F);
+  background:color-mix(in srgb,var(--warn,#B0763F) 7%,transparent);border-radius:0 7px 7px 0;
+  font-size:12px;line-height:1.6;color:var(--ink2,#38425A)}
+#view-p0 .w-alloc-note,
+.w-alloc-note b{font-weight:650}
+td.w-over100{color:var(--warn,#B0763F)!important;font-weight:650;
+  background:color-mix(in srgb,var(--warn,#B0763F) 6%,transparent)}
+td.w-over100 .w-over100-note{font-size:10px;vertical-align:super;margin-left:1px}
+/* 百分比统一到 2 位后，指标列不再出现整数百分比 */
+
+/* ══════════════════════════════════════════════════════════════════
+   v11 ⑧ 数据质量与披露：概览条 + 缺失材料折叠表
+   ══════════════════════════════════════════════════════════════════ */
+/* 概览条（展开后首行；9.5–10px 灰字，不抢主视觉） */
+.dq-ov{
+  margin:2px 0 11px;padding:6px 10px;border-radius:7px;
+  background:rgba(45,57,85,.035);border:1px solid var(--line2,#E4E8EF);
+  font-size:10px;line-height:1.7;color:var(--ink3,#6B7488);letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;
+}
+.dq-ov b{font-weight:650;color:var(--ink2,#38425A)}
+.dq-ov .dq-ov-t{font-weight:650;color:var(--ink2,#38425A);margin-right:3px}
+/* 折叠头右侧的「披露 N 项」小字（折叠状态也可见） */
+.fold-sum .dq-n{font-variant-numeric:tabular-nums}
+/* 缺失材料：折叠块 + 表格（默认收起，真实 DOM 内容） */
+.dq-mat{margin:9px 0 0;border:1px solid var(--line2,#E4E8EF);border-radius:8px;
+  background:rgba(45,57,85,.018);overflow:hidden}
+.dq-mat>summary{
+  cursor:pointer;list-style:none;padding:7px 11px;display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--ink3,#6B7488);user-select:none;
+  transition:background .24s var(--ease,ease);
+}
+.dq-mat>summary::-webkit-details-marker{display:none}
+.dq-mat>summary::before{content:"\25B8";font-size:9px;color:var(--ink4,#98A2B3);
+  transition:transform .2s var(--ease,ease);flex:0 0 auto}
+.dq-mat[open]>summary::before{transform:rotate(90deg)}
+.dq-mat>summary:hover{background:rgba(45,57,85,.045);color:var(--ink2,#38425A)}
+.dq-mat>summary .dq-mat-n{font-weight:700;color:var(--ink2,#38425A)}
+.dq-mat>summary .dq-mat-s{font-weight:400;color:var(--ink4,#98A2B3);font-size:10px}
+.dq-mt{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;
+  border-top:1px solid var(--line2,#E4E8EF)}
+.dq-mt th{text-align:left;font-weight:600;color:var(--ink4,#98A2B3);padding:6px 10px;
+  border-bottom:1px solid var(--line2,#E4E8EF);background:rgba(45,57,85,.028);
+  font-size:10.5px;letter-spacing:.02em}
+.dq-mt td{padding:6px 10px;color:var(--ink2,#38425A);line-height:1.6;
+  border-bottom:1px solid var(--line1,#EEF1F6);vertical-align:top}
+.dq-mt tr:last-child td{border-bottom:0}
+.dq-mt .mn{font-weight:600;color:var(--ink,#141A26)}
+.dq-mt .mi{white-space:nowrap;color:var(--ink3,#6B7488)}
+.dq-mt .mi .no{color:var(--neg,#1F7A5C);font-weight:600}
+.dq-mf{padding:7px 11px;font-size:10px;line-height:1.6;color:var(--ink4,#98A2B3);
+  border-top:1px solid var(--line2,#E4E8EF);background:rgba(45,57,85,.014)}
+.dq-nomat{margin:8px 0 0;font-size:11px;color:var(--ink4,#98A2B3)}
+.dq-sec .dq-mat:first-child{margin-top:2px}
+
+/* ── v4：窄屏（<560px）单元格不截断、不横向溢出 ── */
+@media(max-width:560px){
+  .pf-row{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:/k/ "v" "n"!important}
+  .pf-rk,.pf-rv{white-space:normal!important;overflow:visible!important;
+    text-overflow:clip!important;word-break:break-word;min-width:0}
+  .pf-rv{text-align:left!important}
+  .pf-cv{white-space:normal!important}
+}
+
+/* ── v5：分配明细矩阵固定列宽（序/档位列不占多余空间） ── */
+/* 仅宽屏生效；≤1200px 回退 auto，避免内容溢出（窄屏交给 .tbl-wrap 横滚） */
+.tbl.tbl-mtx{table-layout:fixed}
+.tbl.tbl-mtx thead th:nth-child(1){width:68px}
+.tbl.tbl-mtx thead th:nth-child(2){width:56px}
+@media(max-width:1439px){.tbl.tbl-mtx{table-layout:auto}}
+
+/* ── 项目化追加：分配明细矩阵列宽治理（4–12 期通用，实测于 2026-10-28） ──────────
+   问题（1600 宽视口实测）：table-layout:auto 下浏览器按内容分配，
+   ① 首列受 .tbl th:first-child{min-width:150px} 撑到 150px；
+   ② 档位列被挤到 24px，「费用」「证券」被迫折成两行；
+   ③ 科目列却占 368px；④ 数值列宽窄不一（第9期 39px vs 其他 55px）。
+   做法：三列前缀给定 width+min-width 硬约束，科目列允许换行且给足下限，
+        数值列统一 min-width；剩余空间由 auto 布局按比例摊平，不再出现窄列。 */
+.tbl.tbl-mtx{table-layout:auto;width:100%}
+.tbl.tbl-mtx thead th:first-child,.tbl.tbl-mtx tbody td:first-child{
+  width:58px;min-width:58px;white-space:nowrap}
+.tbl.tbl-mtx thead th:nth-child(2),.tbl.tbl-mtx tbody td:nth-child(2){
+  width:56px;min-width:56px;white-space:nowrap}
+.tbl.tbl-mtx thead th:nth-child(3),.tbl.tbl-mtx tbody td:nth-child(3){
+  width:auto;min-width:148px;white-space:normal;word-break:keep-all;line-height:1.45}
+.tbl.tbl-mtx thead th:nth-child(n+4),.tbl.tbl-mtx tbody td:nth-child(n+4){
+  min-width:64px;white-space:nowrap}
+.tbl.tbl-mtx thead th:last-child,.tbl.tbl-mtx tbody td:last-child{
+  min-width:80px;white-space:nowrap}
+.tbl.tbl-mtx th,.tbl.tbl-mtx td{font-size:10.5px;padding-left:6px;padding-right:6px}
+</style></head>
+<body><div class='app'>
+<aside class='sidebar' id='sidebar'>
+  <div class='sb-head'>
+    <div class='sb-title'>惠元2021年第三期</div>
+    <div class='sb-sub'>单项目八节 · 中信银行 · 信用卡不良</div>
+    <input class='sb-search' id='search' placeholder="搜索节（按 / 聚焦）">
+  </div>
+  <nav class='sb-nav'>
+    <a class="sb-item" data-sec="s1">◆ 惠元2021年第三期（单项目八节）</a>
+    <div class="sb-type" data-type="分节导航">
+      <div class="sb-thead"><span>分节导航</span><span class="cnt">8 节</span><span class="sb-caret">▾</span></div>
+      <div class="sb-group" data-bank="惠元2021年第三期">
+        <div class="sb-ghead"><span>穿透八节</span><span class="cnt">8</span><span class="sb-caret">▾</span></div>
+        <div class="sb-items"><a class="sb-item" data-sec="s1">① 项目档案</a><a class="sb-item" data-sec="s2">② 资产池基础情况</a><a class="sb-item" data-sec="s3">③ 分期节奏</a><a class="sb-item" data-sec="s4">④ 现金流分配过程</a><a class="sb-item" data-sec="s6">⑤ XIRR 与 XNPV</a><a class="sb-item" data-sec="s8">⑥ 账户勾稽</a><a class="sb-item" data-sec="s9">⑦ 核心结论</a><a class="sb-item" data-sec="s10">⑧ 数据质量与披露</a></div>
+      </div>
+    </div>
+  </nav>
+</aside>
+<main class='main'>
+  <div class='topbar'><button class='hamburger' id='hamburger'>☰</button>
+    <div class='crumb' id='crumb'></div></div>
+  <section class="view on" id="view-p0" style="--accent:#A52524;--accent-soft:#FBEFEF;--accent-line:#E9C7C6">
+    <div class="fold rv" id="s1"><div class="fold-h"><span class="ft"><span class="sec-num">①</span> 项目档案</span><span class="fold-sum">入池 40.87 亿元 ｜ 预计 7.47 亿元 ｜ <span class="pill ok">达成 91.14%</span></span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="hero"><div class="hero-top"><span class="cat">信用卡不良</span>
+<span class="hbadge t-final">信托计划已终止 · 清算完成 2023-02-14</span>
+<div class="w-ext w-term" data-w-term="1">证券端：优先档本金已兑付 <b>100.00%</b> ｜ 次级档本金已兑付 <b>100.00%</b></div></div>
+<h1>惠元2021年第三期</h1>
+<div class="issuer">中信银行 · 信用卡不良 · 2021 年</div>
+<div class="chips"><span class="chip">银行 · 中信银行</span><span class="chip">品种 · 信用卡不良</span><span class="chip">判据置信度 · 高</span><span class="chip">含抵押物信号 · 否</span><span class="chip">判据原文 · 基础资产为不良信用卡债权</span><span class="chip">证券代码 · 2189594 / 2189595</span></div>
+<div class="hsum hsum-exec"><b>本单速览</b>　发行规模 5.30 亿元 ｜ 入池本息费 40.87 亿元 ｜ 累计回收 6.81 亿元 ｜ 回收率 16.66% ｜ 证券化率 12.97% ｜ 预计达成 91.14% ｜ 优先档 XIRR 2.99% ｜ 次级档 XIRR 36.72% ｜ 处置费率 9.09% ｜ 信托清算日 2022-12-20</div>
+<div class="hsum hsum2"><b>信用卡不良 · 品种特征</b>　资产特征：无抵押、无担保；单笔金额小、户数极多、单户占比低、高度分散。 ｜ 回收规律：回收率低（个位数～低两位），<b>现金流前置、衰减快</b>；回收质量高度依赖催收与委外效率。 ｜ 典型处置：批量委外催收为主、诉讼为辅；处置费与服务费合计常占回收款 15%～20%，是本品种最显著的成本特征。</div>
+<div class="note pf-missing-hidden" data-pf="note-hidden">缺失材料（依据：资产类型判定表·缺失材料列）：法律意见书、会计意见书、跟踪评级报告</div></div><div class="kpis kpi-strip pf-strip" data-chart="kpi-strip" data-pf="strip"><div class="pf-sgrp" data-pf-cat="0"><div class="pf-scap"><i class="pf-snum">①</i><span>资产池情况</span></div><div class="pf-cells"><div class="pf-c" data-pf-field="入池本息费"><div class="pf-ck">入池本息费</div><div class="pf-cv"><b>40.87</b><small>亿</small></div><div class="pf-cn">入池规模（本息费口径）</div></div><div class="pf-c" data-pf-field="入池本金"><div class="pf-ck">入池本金</div><div class="pf-cv"><b>35.73</b><small>亿</small></div></div><div class="pf-c" data-pf-field="入池息费"><div class="pf-ck">入池息费</div><div class="pf-cv"><b>5.14</b><small>亿</small></div><div class="pf-cn">＝本息费 − 本金 ＝ 51,370.41 万元｜源披露为「入池息费总额 51,370.41 万元」</div></div><div class="pf-c pf-merged" data-pf-field="主体户数 / 资产笔数"><div class="pf-ck"><span class="pf-ck-i">主体户数</span><span class="pf-ck-s">/</span><span class="pf-ck-i">资产笔数</span></div><div class="pf-cv"><span class="pf-tx">102,435 户 / 116,832 笔</span></div><div class="pf-cn">主体户数 / 入池资产笔数</div></div></div></div><div class="pf-sgrp" data-pf-cat="1"><div class="pf-scap"><i class="pf-snum">②</i><span>集中度与账龄</span></div><div class="pf-cells"><div class="pf-c" data-pf-field="单笔最高"><div class="pf-ck">单笔最高</div><div class="pf-cv"><b>74.86</b><small>万</small></div><div class="pf-cn">池内最大单笔本息费</div></div><div class="pf-c" data-pf-field="单笔平均"><div class="pf-ck">单笔平均</div><div class="pf-cv"><b>3.50</b><small>万</small></div><div class="pf-cn">入池本息费 ÷ 资产笔数</div></div><div class="pf-c" data-pf-field="主体平均"><div class="pf-ck">主体平均</div><div class="pf-cv"><b>3.99</b><small>万</small></div><div class="pf-cn">入池本息费 ÷ 主体户数</div></div><div class="pf-c" data-pf-field="加权平均逾期"><div class="pf-ck">加权平均逾期</div><div class="pf-cv"><b>4.7</b><small>个月</small></div><div class="pf-cn">按未偿本息加权</div></div></div></div></div><div class="kpis pf-panels" data-chart="kpi-grid" data-pf="panels"><div class="pf-panel pf-7" data-pf-cat="2"><div class="pf-ph"><i class="pf-snum">③</i><span class="pf-pt">③ 预期回收与发行结构</span><span class="pf-pm"><span class="pf-badge">发行主体 · 中信银行</span><span class="pf-badge pf-on">是否回购 · 是</span></span></div><div class="pf-rows pf-rows8"><div class="pf-row" data-pf-field="中债预计回收" title="中债预计回收 747,268,000.00 元"><span class="pf-rk">中债预计回收</span><span class="pf-rv"><b>7.47</b><small>亿</small></span></div><div class="pf-row" data-pf-field="预计回收率"><span class="pf-rk">预计回收率</span><span class="pf-rv"><b>18.28</b><small>%</small></span><span class="pf-rn">＝中债预计回收 ÷ 入池本息费</span></div><div class="pf-row" data-pf-field="发行规模"><span class="pf-rk">发行规模</span><span class="pf-rv"><b>5.30</b><small>亿</small></span></div><div class="pf-row" data-pf-field="优先档规模"><span class="pf-rk">优先档规模</span><span class="pf-rv"><b>4.50</b><small>亿</small></span><span class="pf-rn">票面 2.95%</span></div><div class="pf-row" data-pf-field="次级档规模"><span class="pf-rk">次级档规模</span><span class="pf-rv"><b>0.80</b><small>亿</small></span><span class="pf-rn">不设票面利率</span></div><div class="pf-row" data-pf-field="证券化率"><span class="pf-rk">证券化率</span><span class="pf-rv"><b>12.97</b><small>%</small></span><span class="pf-rn">＝发行规模 ÷ 入池本息费</span></div><div class="pf-row pf-wide" data-pf-field="合同处置费率/上限"><span class="pf-rk">合同处置费率/上限</span><span class="pf-rv"><span class="pf-tx">累计回收款的 17%</span></span><span class="pf-rn">超过 17% 部分劣后至优先档本金之后（说明书 p87 i 项）</span></div></div></div><div class="pf-panel pf-5" data-pf-cat="3"><div class="pf-ph"><i class="pf-snum">④</i><span class="pf-pt">④ 实际回收与处置</span></div><div class="pf-rows"><div class="pf-row" data-pf-field="累计回收"><span class="pf-rk">累计回收</span><span class="pf-rv"><b>6.81</b><small>亿</small></span></div><div class="pf-row" data-pf-field="回收率"><span class="pf-rk">回收率</span><span class="pf-rv"><b>16.66</b><small>%</small></span><span class="pf-rn">＝累计回收 ÷ 入池本息费</span></div><div class="pf-row" data-pf-field="预计达成率"><span class="pf-rk">预计达成率</span><span class="pf-rv"><b>91.14</b><small>%</small></span><span class="pf-rn">＝累计回收 ÷ 中债预计回收</span></div><div class="pf-row" data-pf-field="处置费用"><span class="pf-rk">处置费用</span><span class="pf-rv"><b>0.62</b><small>亿</small></span><span class="pf-rn">金额（与费率不同概念）</span></div><div class="pf-row pf-wide" data-pf-field="处置费率"><span class="pf-rk">处置费率</span><span class="pf-rv"><b>9.09</b><small>%</small></span><span class="pf-rn">＝处置费用 ÷ 累计回收（全报告统一口径）</span></div></div></div><div class="pf-panel pf-wide" data-pf-cat="4"><div class="pf-ph"><i class="pf-snum">⑤</i><span class="pf-pt">⑤ 实际收益与期限</span><span class="pf-pm"><span class="pf-badge">品种 · 信用卡不良</span><span class="pf-badge pf-on">存续 12 个月</span></span></div><div class="pf-rows pf-rows8"><div class="pf-row" data-pf-field="优先档XIRR"><span class="pf-rk">优先档XIRR</span><span class="pf-rv"><b>2.99</b><small>%</small></span><span class="pf-rn">票面 2.95%；货币加权，与票面不可直接比较</span></div><div class="pf-row" data-pf-field="次级档XIRR"><span class="pf-rk">次级档XIRR</span><span class="pf-rv"><b>36.72</b><small>%</small></span><span class="pf-rn">回报倍数 1.273x</span></div><div class="pf-row" data-pf-field="存续期"><span class="pf-rk">存续期</span><span class="pf-rv"><b>12</b><small>个月</small></span><span class="pf-rn">信托设立日 → 信托终止日</span></div><div class="pf-row" data-pf-field="支付周期"><span class="pf-rk">支付周期</span><span class="pf-rv"><b>按季付息</b><small></small></span><span class="pf-rn">3/6/9/12 月 20 日</span></div><div class="pf-row pf-wide" data-pf-field="首末支付日"><span class="pf-rk">首末支付日</span><span class="pf-rv"><span class="pf-tx">2022-01-20 / 2022-12-20</span></span><span class="pf-rn">共 5 个支付日</span></div></div></div></div><dl class="infolist pf-meta-hidden" data-pf="meta-hidden"><div><dt>归属目录</dt><dd>中信银行_惠元2021年第三期不良资产支持证券_发行2021_清算2023</dd></div><div><dt>项目主键</dt><dd>惠元2021年第三期</dd></div><div><dt>设立日</dt><dd>2021-12-21</dd></div><div><dt>清算日</dt><dd>2023-02-14</dd></div><div><dt>是否回购</dt><dd>是</dd></div><div><dt>银行分组</dt><dd>中信银行</dd></div></dl></div></div></div></div><div class="fold rv" id="s2"><div class="fold-h"><span class="ft"><span class="sec-num">②</span> 资产池基础情况（维度①）</span><span class="fold-sum">入池本息费 40.87 亿元 ｜ 预计回收 7.47 亿元</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="pool-sum">入池本息费 <b>40.87 亿元</b> ｜ 入池本金 <b>35.73 亿元</b> ｜ 入池息费 <b>51,370.41 万元</b> ｜ 预计回收 <b>7.47 亿元</b>（74,726.80 万元） ｜ 资产笔数 <b>116,832</b> ｜ 主体户数 <b>102,435</b></div><div class="note"><b>账龄结构</b>：加权平均逾期 <b>4.73 月</b> ｜ 证券化率 <b>12.97%（主口径·÷入池未偿本息费）／14.83%（并列·÷入池本金）</b> <span style="color:#5b6472">现算·非源披露：发行规模 530,000,000.00（源：发行说明书 p2 封面发行表）÷ 入池未偿本息费 4,087,035,431.87</span></div><div class="dist-grid"><div class="chart" data-chart="dist-v9"><div class="ct">未偿本息费余额分布</div><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col-pareto"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="322" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><text x="326" y="141.5" font-size="9.5" fill="#8A94A6">0.00%</text><line x1="34" y1="82.0" x2="322" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">7.37</text><text x="326" y="85.5" font-size="9.5" fill="#8A94A6">50.00%</text><line x1="34" y1="26.0" x2="322" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">14.74</text><text x="326" y="29.5" font-size="9.5" fill="#8A94A6">100.00%</text><rect class="v2c-dbar" x="49.8" y="32.5" width="26.0" height="105.5" rx="1.5" fill="#2D3955"><title>(0,5]｜余额 138,771.36 万元｜笔数 88,757 笔｜预计回收 34,541.78 万元</title></rect><text x="62.8" y="27.5" text-anchor="middle" font-size="9.5" fill="#4B5566">13.88亿元</text><text x="62.8" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 62.8 152)">(0,5]</text><rect class="v2c-dbar" x="107.4" y="32.3" width="26.0" height="105.7" rx="1.5" fill="#2D3955"><title>(5,10]｜余额 139,029.83 万元｜笔数 19,350 笔｜预计回收 24,115.03 万元</title></rect><text x="120.4" y="27.3" text-anchor="middle" font-size="9.5" fill="#4B5566">13.90亿元</text><text x="120.4" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 120.4 152)">(5,10]</text><rect class="v2c-dbar" x="165.0" y="87.1" width="26.0" height="50.9" rx="1.5" fill="#2D3955"><title>(10,15]｜余额 67,006.76 万元｜笔数 5,561 笔｜预计回收 9,425.14 万元</title></rect><text x="178.0" y="82.1" text-anchor="middle" font-size="9.5" fill="#4B5566">6.70亿元</text><text x="178.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 178.0 152)">(10,15]</text><rect class="v2c-dbar" x="222.6" y="112.1" width="26.0" height="25.9" rx="1.5" fill="#2D3955"><title>(15,20]｜余额 34,137.06 万元｜笔数 1,998 笔｜预计回收 3,927.45 万元</title></rect><text x="235.6" y="107.1" text-anchor="middle" font-size="9.5" fill="#4B5566">3.41亿元</text><text x="235.6" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 235.6 152)">(15,20]</text><rect class="v2c-dbar" x="280.2" y="115.4" width="26.0" height="22.6" rx="1.5" fill="#2D3955"><title>20万以上｜余额 29,758.53 万元｜笔数 1,166 笔｜预计回收 2,717.41 万元</title></rect><text x="293.2" y="110.4" text-anchor="middle" font-size="9.5" fill="#4B5566">2.98亿元</text><text x="293.2" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 293.2 152)">20万以上</text><path d="M62.8,100.0 C82.0,87.3 101.2,70.1 120.4,61.9 C139.6,53.6 158.8,47.6 178.0,43.5 C197.2,39.4 216.4,37.1 235.6,34.2 C254.8,31.3 274.0,28.7 293.2,26.0" fill="none" stroke="#A52524" stroke-width="1.6" stroke-linejoin="round"></path><circle cx="62.8" cy="100.0" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="120.4" cy="61.9" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="178.0" cy="43.5" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="235.6" cy="34.2" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="293.2" cy="26.0" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">五级分类分布</div><svg viewBox="0 0 352 118" width="100%" role="img" aria-label="占比分布" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="stack-bar"><rect x="12.0" y="18" width="208.0" height="26" rx="1.5" fill="#2D3955"><title>次级｜余额 259,195.05 万元｜占比 63.42%｜笔数 99,516 笔</title></rect><text x="116.0" y="35" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">63.42%</text><rect x="220.0" y="18" width="91.3" height="26" rx="1.5" fill="#B0763F"><title>可疑｜余额 113,709.37 万元｜占比 27.82%｜笔数 13,482 笔</title></rect><text x="265.6" y="35" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">27.82%</text><rect x="311.3" y="18" width="28.7" height="26" rx="1.5" fill="#A52524"><title>损失｜余额 35,799.12 万元｜占比 8.76%｜笔数 3,834 笔</title></rect><rect x="12" y="54" width="8" height="8" rx="2" fill="#2D3955"></rect><text x="24" y="61" font-size="10" fill="#697487">次级 63.42%</text><rect x="85.4" y="54" width="8" height="8" rx="2" fill="#B0763F"></rect><text x="97.4" y="61" font-size="10" fill="#697487">可疑 27.82%</text><rect x="158.8" y="54" width="8" height="8" rx="2" fill="#A52524"></rect><text x="170.8" y="61" font-size="10" fill="#697487">损失 8.76%</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">担保方式分布</div><svg viewBox="0 0 352 118" width="100%" role="img" aria-label="占比分布" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="stack-bar"><rect x="12.0" y="18" width="328.0" height="26" rx="1.5" fill="#2D3955"><title>信用类 100.00%｜余额 408,703.54 万元</title></rect><text x="176.0" y="35" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">100.00%</text><rect x="12" y="54" width="8" height="8" rx="2" fill="#2D3955"></rect><text x="24" y="61" font-size="10" fill="#697487">信用类（无担保） 100.00%</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">逾期时间分布</div><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="340" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><line x1="34" y1="82.0" x2="340" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">19.28</text><line x1="34" y1="26.0" x2="340" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">38.55</text><rect class="v2c-dbar" x="49.6" y="127.9" width="30.0" height="10.1" rx="1.5" fill="#2D3955"><title>(0,3]｜余额 34,744.73 万元｜笔数 13,186 笔</title></rect><text x="64.6" y="122.9" text-anchor="middle" font-size="9.5" fill="#4B5566">3.47</text><text x="64.6" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 64.6 152)">(0,3]</text><rect class="v2c-dbar" x="110.8" y="39.8" width="30.0" height="98.2" rx="1.5" fill="#2D3955"><title>(3,6]｜余额 338,159.69 万元｜笔数 99,812 笔</title></rect><text x="125.8" y="34.8" text-anchor="middle" font-size="9.5" fill="#4B5566">33.82</text><text x="125.8" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 125.8 152)">(3,6]</text><rect class="v2c-dbar" x="172.0" y="129.1" width="30.0" height="8.9" rx="1.5" fill="#2D3955"><title>(6,9]｜余额 30,596.09 万元｜笔数 3,318 笔</title></rect><text x="187.0" y="124.1" text-anchor="middle" font-size="9.5" fill="#4B5566">3.06</text><text x="187.0" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 187.0 152)">(6,9]</text><rect class="v2c-dbar" x="233.2" y="137.3" width="30.0" height="1.0" rx="1.5" fill="#2D3955"><title>(9,12]｜余额 2,562.12 万元｜笔数 244 笔</title></rect><text x="248.2" y="132.3" text-anchor="middle" font-size="9.5" fill="#4B5566">0.26</text><text x="248.2" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 248.2 152)">(9,12]</text><rect class="v2c-dbar" x="294.4" y="137.2" width="30.0" height="1.0" rx="1.5" fill="#2D3955"><title>12月以上｜余额 2,640.92 万元｜笔数 272 笔</title></rect><text x="309.4" y="132.2" text-anchor="middle" font-size="9.5" fill="#4B5566">0.26</text><text x="309.4" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 309.4 152)">12月以上</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">借款人年龄分布</div><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="340" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><line x1="34" y1="82.0" x2="340" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">11.51</text><line x1="34" y1="26.0" x2="340" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">23.02</text><rect class="v2c-dbar" x="57.2" y="106.2" width="30.0" height="31.8" rx="1.5" fill="#2D3955"><title>[18,30]｜余额 65,396.99 万元｜笔数 29,629 笔</title></rect><text x="72.2" y="101.2" text-anchor="middle" font-size="9.5" fill="#4B5566">6.54</text><text x="72.2" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 72.2 152)">[18,30]</text><rect class="v2c-dbar" x="133.8" y="39.8" width="30.0" height="98.2" rx="1.5" fill="#2D3955"><title>(30,40]｜余额 201,957.92 万元｜笔数 54,710 笔</title></rect><text x="148.8" y="34.8" text-anchor="middle" font-size="9.5" fill="#4B5566">20.20</text><text x="148.8" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 148.8 152)">(30,40]</text><rect class="v2c-dbar" x="210.2" y="89.8" width="30.0" height="48.2" rx="1.5" fill="#2D3955"><title>(40,50]｜余额 99,039.85 万元｜笔数 22,935 笔</title></rect><text x="225.2" y="84.8" text-anchor="middle" font-size="9.5" fill="#4B5566">9.90</text><text x="225.2" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 225.2 152)">(40,50]</text><rect class="v2c-dbar" x="286.8" y="117.4" width="30.0" height="20.6" rx="1.5" fill="#2D3955"><title>50岁以上｜余额 42,308.79 万元｜笔数 9,558 笔</title></rect><text x="301.8" y="112.4" text-anchor="middle" font-size="9.5" fill="#4B5566">4.23</text><text x="301.8" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 301.8 152)">50岁以上</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">借款人年收入分布</div><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="340" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><line x1="34" y1="82.0" x2="340" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">12.51</text><line x1="34" y1="26.0" x2="340" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">25.03</text><rect class="v2c-dbar" x="49.6" y="39.8" width="30.0" height="98.2" rx="1.5" fill="#2D3955"><title>[0,5]｜余额 219,553.53 万元｜笔数 66,680 笔</title></rect><text x="64.6" y="34.8" text-anchor="middle" font-size="9.5" fill="#4B5566">21.96</text><text x="64.6" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 64.6 152)">[0,5]</text><rect class="v2c-dbar" x="110.8" y="97.1" width="30.0" height="40.9" rx="1.5" fill="#2D3955"><title>(5,10]｜余额 91,469.31 万元｜笔数 25,629 笔</title></rect><text x="125.8" y="92.1" text-anchor="middle" font-size="9.5" fill="#4B5566">9.15</text><text x="125.8" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 125.8 152)">(5,10]</text><rect class="v2c-dbar" x="172.0" y="117.1" width="30.0" height="20.9" rx="1.5" fill="#2D3955"><title>(10,15]｜余额 46,793.92 万元｜笔数 13,467 笔</title></rect><text x="187.0" y="112.1" text-anchor="middle" font-size="9.5" fill="#4B5566">4.68</text><text x="187.0" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 187.0 152)">(10,15]</text><rect class="v2c-dbar" x="233.2" y="126.2" width="30.0" height="11.8" rx="1.5" fill="#2D3955"><title>(15,20]｜余额 26,385.79 万元｜笔数 6,420 笔</title></rect><text x="248.2" y="121.2" text-anchor="middle" font-size="9.5" fill="#4B5566">2.64</text><text x="248.2" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 248.2 152)">(15,20]</text><rect class="v2c-dbar" x="294.4" y="127.0" width="30.0" height="11.0" rx="1.5" fill="#2D3955"><title>20万以上｜余额 24,500.99 万元｜笔数 4,636 笔</title></rect><text x="309.4" y="122.0" text-anchor="middle" font-size="9.5" fill="#4B5566">2.45</text><text x="309.4" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 309.4 152)">20万以上</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">授信额度分布</div><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="340" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><line x1="34" y1="82.0" x2="340" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">7.49</text><line x1="34" y1="26.0" x2="340" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">14.97</text><rect class="v2c-dbar" x="49.6" y="48.1" width="30.0" height="89.9" rx="1.5" fill="#2D3955"><title>[0,5]｜余额 120,160.29 万元｜笔数 76,581 笔</title></rect><text x="64.6" y="43.1" text-anchor="middle" font-size="9.5" fill="#4B5566">12.02</text><text x="64.6" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 64.6 152)">[0,5]</text><rect class="v2c-dbar" x="110.8" y="39.8" width="30.0" height="98.2" rx="1.5" fill="#2D3955"><title>(5,10]｜余额 131,326.14 万元｜笔数 23,779 笔</title></rect><text x="125.8" y="34.8" text-anchor="middle" font-size="9.5" fill="#4B5566">13.13</text><text x="125.8" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 125.8 152)">(5,10]</text><rect class="v2c-dbar" x="172.0" y="71.0" width="30.0" height="67.0" rx="1.5" fill="#2D3955"><title>(10,15]｜余额 89,585.94 万元｜笔数 11,040 笔</title></rect><text x="187.0" y="66.0" text-anchor="middle" font-size="9.5" fill="#4B5566">8.96</text><text x="187.0" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 187.0 152)">(10,15]</text><rect class="v2c-dbar" x="233.2" y="103.5" width="30.0" height="34.5" rx="1.5" fill="#2D3955"><title>(15,20]｜余额 46,099.16 万元｜笔数 4,209 笔</title></rect><text x="248.2" y="98.5" text-anchor="middle" font-size="9.5" fill="#4B5566">4.61</text><text x="248.2" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 248.2 152)">(15,20]</text><rect class="v2c-dbar" x="294.4" y="121.9" width="30.0" height="16.1" rx="1.5" fill="#2D3955"><title>20万以上｜余额 21,532.01 万元｜笔数 1,223 笔</title></rect><text x="309.4" y="116.9" text-anchor="middle" font-size="9.5" fill="#4B5566">2.15</text><text x="309.4" y="152" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 309.4 152)">20万以上</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">借款人职业分布</div><svg viewBox="0 0 352 210" width="100%" role="img" aria-label="TopN 分布" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="hbar"><text x="348" y="10" text-anchor="end" font-size="10.5" fill="#98A2B3">单位：亿元</text><rect x="88" y="19.0" width="206.0" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>金融机构｜余额 57,687.49 万元｜占比 14.11%</title></rect><text x="82" y="28.0" text-anchor="end" font-size="9.5" fill="#79849A">金融机构</text><text x="300.0" y="28.0" font-size="9.5" fill="#4B5566">5.77</text><rect x="88" y="39.0" width="200.7" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>专项服务业｜余额 56,193.04 万元｜占比 13.75%</title></rect><text x="82" y="48.0" text-anchor="end" font-size="9.5" fill="#79849A">专项服务业</text><text x="294.7" y="48.0" font-size="9.5" fill="#4B5566">5.62</text><rect x="88" y="59.0" width="189.5" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>商业贸易｜余额 53,053.45 万元｜占比 12.98%</title></rect><text x="82" y="68.0" text-anchor="end" font-size="9.5" fill="#79849A">商业贸易</text><text x="283.5" y="68.0" font-size="9.5" fill="#4B5566">5.31</text><rect x="88" y="79.0" width="188.1" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>零售服务业｜余额 52,685.53 万元｜占比 12.89%</title></rect><text x="82" y="88.0" text-anchor="end" font-size="9.5" fill="#79849A">零售服务业</text><text x="282.1" y="88.0" font-size="9.5" fill="#4B5566">5.27</text><rect x="88" y="99.0" width="168.7" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>制造业｜余额 47,247.24 万元｜占比 11.56%</title></rect><text x="82" y="108.0" text-anchor="end" font-size="9.5" fill="#79849A">制造业</text><text x="262.7" y="108.0" font-size="9.5" fill="#4B5566">4.72</text><rect x="88" y="119.0" width="141.2" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>建筑业｜余额 39,544.21 万元｜占比 9.68%</title></rect><text x="82" y="128.0" text-anchor="end" font-size="9.5" fill="#79849A">建筑业</text><text x="235.2" y="128.0" font-size="9.5" fill="#4B5566">3.95</text><rect x="88" y="139.0" width="103.4" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>电信及资信科技业｜余额 28,955.01 万元｜占比 7.08%</title></rect><text x="82" y="148.0" text-anchor="end" font-size="9.5" fill="#79849A">电信及资信科技业</text><text x="197.4" y="148.0" font-size="9.5" fill="#4B5566">2.90</text><rect x="88" y="159.0" width="84.7" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>酒店、旅游及餐饮业｜余额 23,730.65 万元｜占比 5.81%</title></rect><text x="82" y="168.0" text-anchor="end" font-size="9.5" fill="#79849A">酒店、旅游及餐饮业</text><text x="178.7" y="168.0" font-size="9.5" fill="#4B5566">2.37</text><rect x="88" y="179.0" width="177.1" height="11" rx="1.5" fill="#A6AFBE" opacity="0.92"><title>其他 7 类合计</title></rect><text x="82" y="188.0" text-anchor="end" font-size="9.5" fill="#79849A">其他（7 类）</text><text x="271.1" y="188.0" font-size="9.5" fill="#4B5566">4.96</text></svg></div><div class="chart" data-chart="dist-v9"><div class="ct">借款人地区分布</div><svg viewBox="0 0 352 250" width="100%" role="img" aria-label="TopN 分布" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="hbar"><text x="348" y="10" text-anchor="end" font-size="10.5" fill="#98A2B3">单位：亿元</text><rect x="88" y="19.0" width="34.6" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>广州｜余额 36,087.17 万元｜占比 8.83%</title></rect><text x="82" y="28.0" text-anchor="end" font-size="9.5" fill="#79849A">广州</text><text x="128.6" y="28.0" font-size="9.5" fill="#4B5566">3.61</text><rect x="88" y="39.0" width="25.2" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>深圳｜余额 26,296.88 万元｜占比 6.43%</title></rect><text x="82" y="48.0" text-anchor="end" font-size="9.5" fill="#79849A">深圳</text><text x="119.2" y="48.0" font-size="9.5" fill="#4B5566">2.63</text><rect x="88" y="59.0" width="25.1" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>郑州｜余额 26,152.54 万元｜占比 6.40%</title></rect><text x="82" y="68.0" text-anchor="end" font-size="9.5" fill="#79849A">郑州</text><text x="119.1" y="68.0" font-size="9.5" fill="#4B5566">2.62</text><rect x="88" y="79.0" width="18.3" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>北京｜余额 19,097.14 万元｜占比 4.67%</title></rect><text x="82" y="88.0" text-anchor="end" font-size="9.5" fill="#79849A">北京</text><text x="112.3" y="88.0" font-size="9.5" fill="#4B5566">1.91</text><rect x="88" y="99.0" width="16.9" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>济南｜余额 17,596.00 万元｜占比 4.31%</title></rect><text x="82" y="108.0" text-anchor="end" font-size="9.5" fill="#79849A">济南</text><text x="110.9" y="108.0" font-size="9.5" fill="#4B5566">1.76</text><rect x="88" y="119.0" width="16.1" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>南宁｜余额 16,771.52 万元｜占比 4.10%</title></rect><text x="82" y="128.0" text-anchor="end" font-size="9.5" fill="#79849A">南宁</text><text x="110.1" y="128.0" font-size="9.5" fill="#4B5566">1.68</text><rect x="88" y="139.0" width="14.0" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>武汉｜余额 14,599.23 万元｜占比 3.57%</title></rect><text x="82" y="148.0" text-anchor="end" font-size="9.5" fill="#79849A">武汉</text><text x="108.0" y="148.0" font-size="9.5" fill="#4B5566">1.46</text><rect x="88" y="159.0" width="12.1" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>沈阳｜余额 12,641.27 万元｜占比 3.09%</title></rect><text x="82" y="168.0" text-anchor="end" font-size="9.5" fill="#79849A">沈阳</text><text x="106.1" y="168.0" font-size="9.5" fill="#4B5566">1.26</text><rect x="88" y="179.0" width="12.1" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>石家庄｜余额 12,635.35 万元｜占比 3.09%</title></rect><text x="82" y="188.0" text-anchor="end" font-size="9.5" fill="#79849A">石家庄</text><text x="106.1" y="188.0" font-size="9.5" fill="#4B5566">1.26</text><rect x="88" y="199.0" width="11.3" height="11" rx="1.5" fill="#2D3955" opacity="0.92"><title>成都｜余额 11,810.03 万元｜占比 2.89%</title></rect><text x="82" y="208.0" text-anchor="end" font-size="9.5" fill="#79849A">成都</text><text x="105.3" y="208.0" font-size="9.5" fill="#4B5566">1.18</text><rect x="88" y="219.0" width="206.0" height="11" rx="1.5" fill="#A6AFBE" opacity="0.92"><title>其他 33 类合计</title></rect><text x="82" y="228.0" text-anchor="end" font-size="9.5" fill="#79849A">其他（33 类）</text><text x="300.0" y="228.0" font-size="9.5" fill="#4B5566">21.50</text></svg></div></div><div class="v2c-dist-note v2c-dist-note-wide">注：本单底层为信用卡类资产，源说明书「担保方式」为<b>信用类 100.00%</b>，与信用卡通常无抵押的情况一致，无异常。</div></div></div></div></div><div class="fold rv" id="s3"><div class="fold-h"><span class="ft"><span class="sec-num">③</span> 分期节奏：实际 vs 预计（维度②）</span><span class="fold-sum">达成率 <span class="pill ok">达成 91.14%</span></span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="v6-duo"><div class="chart" data-chart="rec-dist"><div class="ct">预计回收率分布<span class="v2c-tag">单位：亿元</span></div><div style="max-width:400px;margin:0 auto"><svg viewBox="0 0 352 182" width="100%" role="img" aria-label="分布图" data-xdraw="1" class="v6-donut v2c-svg" style="width:100%;height:auto;display:block" data-v2c-dist="1" data-v2c-charttype="col-pareto"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="348" y="12">单位：亿元</text><line x1="34" y1="138.0" x2="322" y2="138.0" stroke="#C9D2E0" stroke-width="1"></line><text x="30" y="141.5" text-anchor="end" font-size="9.5" fill="#98A2B3">0.00</text><text x="326" y="141.5" font-size="9.5" fill="#8A94A6">0.00%</text><line x1="34" y1="82.0" x2="322" y2="82.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="85.5" text-anchor="end" font-size="9.5" fill="#98A2B3">1.76</text><text x="326" y="85.5" font-size="9.5" fill="#8A94A6">50.00%</text><line x1="34" y1="26.0" x2="322" y2="26.0" stroke="#E6EBF3" stroke-width="1"></line><text x="30" y="29.5" text-anchor="end" font-size="9.5" fill="#98A2B3">3.52</text><text x="326" y="29.5" font-size="9.5" fill="#8A94A6">100.00%</text><rect class="v2c-dbar" x="45.0" y="127.5" width="26.0" height="10.5" rx="1.5" fill="#1F7A5C"><title>[0,10]%｜预计回收 3,292.66 万元｜笔数 4,019 笔</title></rect><text x="58.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 58.0 152)">[0,10]%</text><rect class="v2c-dbar" x="93.0" y="32.3" width="26.0" height="105.7" rx="1.5" fill="#1F7A5C"><title>(10,20]%｜预计回收 33,171.25 万元｜笔数 32,146 笔</title></rect><text x="106.0" y="27.3" text-anchor="middle" font-size="9.5" fill="#4B5566">3.32亿元</text><text x="106.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 106.0 152)">(10,20]%</text><rect class="v2c-dbar" x="141.0" y="54.1" width="26.0" height="83.9" rx="1.5" fill="#1F7A5C"><title>(20,30]%｜预计回收 26,335.91 万元｜笔数 47,800 笔</title></rect><text x="154.0" y="49.1" text-anchor="middle" font-size="9.5" fill="#4B5566">2.63亿元</text><text x="154.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 154.0 152)">(20,30]%</text><rect class="v2c-dbar" x="189.0" y="118.2" width="26.0" height="19.8" rx="1.5" fill="#1F7A5C"><title>(30,40]%｜预计回收 6,201.84 万元｜笔数 24,661 笔</title></rect><text x="202.0" y="113.2" text-anchor="middle" font-size="9.5" fill="#4B5566">0.62亿元</text><text x="202.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 202.0 152)">(30,40]%</text><rect class="v2c-dbar" x="237.0" y="134.3" width="26.0" height="3.7" rx="1.5" fill="#1F7A5C"><title>(40,50]%｜预计回收 1,151.24 万元｜笔数 5,206 笔</title></rect><text x="250.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 250.0 152)">(40,50]%</text><rect class="v2c-dbar" x="285.0" y="123.4" width="26.0" height="14.6" rx="1.5" fill="#1F7A5C"><title>50%以上｜预计回收 4,573.91 万元｜笔数 3,000 笔</title></rect><text x="298.0" y="118.4" text-anchor="middle" font-size="9.5" fill="#4B5566">0.46亿元</text><text x="298.0" y="152" dy="0" text-anchor="end" font-size="10" fill="#5B6472" transform="rotate(-28 298.0 152)">50%以上</text><path d="M58.0,133.1 C74.0,116.5 90.0,98.0 106.0,83.3 C122.0,68.7 138.0,48.9 154.0,43.9 C170.0,38.9 186.0,35.6 202.0,34.6 C218.0,33.6 234.0,33.8 250.0,32.9 C266.0,31.9 282.0,28.3 298.0,26.0" fill="none" stroke="#A52524" stroke-width="1.6" stroke-linejoin="round"></path><circle cx="58.0" cy="133.1" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="106.0" cy="83.3" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="154.0" cy="43.9" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="202.0" cy="34.6" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="250.0" cy="32.9" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle><circle cx="298.0" cy="26.0" r="2.6" fill="#fff" stroke="#A52524" stroke-width="1.4"></circle></svg></div></div><div class="chart" data-chart="recon-line"><div class="ct">累计回收曲线<span class="v2c-tag">单位：亿元</span></div><svg viewBox="0 0 680 240" width="100%" role="img" aria-label="累计回收曲线（实际实线 / 预计虚线）" style="width:100%;height:auto;display:block" class="v2c-svg"><defs><linearGradient id="v_ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A52524" stop-opacity=".26"></stop><stop offset="1" stop-color="#A52524" stop-opacity="0"></stop></linearGradient></defs><line x1="68" y1="200.0" x2="658" y2="200.0" stroke="#C9D2E0" stroke-width="1"></line><text class="v2c-ax" x="58" y="204.0" text-anchor="end" font-size="11" fill="#697487">0.00</text><line x1="68" y1="160.0" x2="658" y2="160.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="164.0" text-anchor="end" font-size="11" fill="#697487">2.00</text><line x1="68" y1="120.0" x2="658" y2="120.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="124.0" text-anchor="end" font-size="11" fill="#697487">4.00</text><line x1="68" y1="80.0" x2="658" y2="80.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="84.0" text-anchor="end" font-size="11" fill="#697487">6.00</text><line x1="68" y1="40.0" x2="658" y2="40.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="44.0" text-anchor="end" font-size="11" fill="#697487">8.00</text><text class="v2c-note" x="68" y="20" font-size="10.5" fill="#98A2B3">单位：亿元</text><rect x="462" y="14" width="16" height="3" rx="1.5" fill="#A52524"></rect><text class="v2c-leg" x="484" y="19" font-size="11" fill="#4B5566">累计实际回收</text><rect x="566" y="14" width="16" height="3" rx="1.5" fill="#98A2B3"></rect><text class="v2c-leg" x="588" y="19" font-size="11" fill="#4B5566">累计预计回收</text><text class="v6-xlabel" x="68.0" y="218" text-anchor="middle" font-size="11" fill="#697487"><title>第1期 · 支付日 2022-01-20</title>2022-01</text><text class="v6-xlabel" x="215.5" y="218" text-anchor="middle" font-size="11" fill="#697487"><title>第2期 · 支付日 2022-03-20</title>2022-03</text><text class="v6-xlabel" x="363.0" y="218" text-anchor="middle" font-size="11" fill="#697487"><title>第3期 · 支付日 2022-06-20</title>2022-06</text><text class="v6-xlabel" x="510.5" y="218" text-anchor="middle" font-size="11" fill="#697487"><title>第4期 · 支付日 2022-09-20</title>2022-09</text><text class="v6-xlabel" x="658.0" y="218" text-anchor="middle" font-size="11" fill="#697487"><title>第5期 · 支付日 2022-12-20</title>2022-12</text><path d="M68.0,154.4 C117.2,149.3 166.3,145.2 215.5,139.2 C264.7,133.3 313.8,123.2 363.0,117.3 C412.2,111.3 461.3,106.6 510.5,102.2 C559.7,97.8 608.8,94.4 658.0,90.5" fill="none" stroke="#98A2B3" stroke-width="1.6" stroke-dasharray="7 5" stroke-linecap="round"></path><circle cx="68.0" cy="154.4" r="3" fill="#fff" stroke="#98A2B3" stroke-width="1.7"></circle><circle cx="215.5" cy="139.2" r="3" fill="#fff" stroke="#98A2B3" stroke-width="1.7"></circle><circle cx="363.0" cy="117.3" r="3" fill="#fff" stroke="#98A2B3" stroke-width="1.7"></circle><circle cx="510.5" cy="102.2" r="3" fill="#fff" stroke="#98A2B3" stroke-width="1.7"></circle><circle cx="658.0" cy="90.5" r="3" fill="#fff" stroke="#98A2B3" stroke-width="1.7"></circle><path d="M68.0,147.1  C117.2,140.0 166.3,133.6 215.5,125.7 C264.7,117.7 313.8,107.1 363.0,98.8 C412.2,90.5 461.3,81.0 510.5,75.7 C559.7,70.5 608.8,67.8 658.0,63.8 L658.0,200.0 L68.0,200.0 Z" fill="url(#v_ar)"></path><path class="v2c-anim" d="M68.0,147.1 C117.2,140.0 166.3,133.6 215.5,125.7 C264.7,117.7 313.8,107.1 363.0,98.8 C412.2,90.5 461.3,81.0 510.5,75.7 C559.7,70.5 608.8,67.8 658.0,63.8" fill="none" stroke="#A52524" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></path><rect class="v2c-band" data-i="0" x="-5.8" y="40" width="147.5" height="160"><title>第1期 · 支付日 2022-01-20｜累计实际 2.65 亿元｜累计预计 2.28 亿元</title></rect><circle class="v2c-dot" data-r0="4.4" cx="68.0" cy="147.1" r="4.4" fill="#A52524" stroke="#fff" stroke-width="1.8" pointer-events="none"></circle><rect class="v2c-band" data-i="1" x="141.8" y="40" width="147.5" height="160"><title>第2期 · 支付日 2022-03-20｜累计实际 3.72 亿元｜累计预计 3.04 亿元</title></rect><circle class="v2c-dot" data-r0="4.4" cx="215.5" cy="125.7" r="4.4" fill="#A52524" stroke="#fff" stroke-width="1.8" pointer-events="none"></circle><rect class="v2c-band" data-i="2" x="289.2" y="40" width="147.5" height="160"><title>第3期 · 支付日 2022-06-20｜累计实际 5.06 亿元｜累计预计 4.14 亿元</title></rect><circle class="v2c-dot" data-r0="4.4" cx="363.0" cy="98.8" r="4.4" fill="#A52524" stroke="#fff" stroke-width="1.8" pointer-events="none"></circle><rect class="v2c-band" data-i="3" x="436.8" y="40" width="147.5" height="160"><title>第4期 · 支付日 2022-09-20｜累计实际 6.21 亿元｜累计预计 4.89 亿元</title></rect><circle class="v2c-dot" data-r0="4.4" cx="510.5" cy="75.7" r="4.4" fill="#A52524" stroke="#fff" stroke-width="1.8" pointer-events="none"></circle><rect class="v2c-band" data-i="4" x="584.2" y="40" width="147.5" height="160"><title>第5期 · 支付日 2022-12-20｜累计实际 6.81 亿元｜累计预计 5.48 亿元</title></rect><circle class="v2c-dot" data-r0="4.4" cx="658.0" cy="63.8" r="4.4" fill="#A52524" stroke="#fff" stroke-width="1.8" pointer-events="none"></circle></svg></div></div><div class="note"><b>归期规则</b>：实际侧按「回收发生时点落在哪个支付期区间」归集，横轴为该期<b>实际支付日</b>；预计侧取中债预测现金流中「收款期末日早于或等于该支付日」的已完成收款期累计，两条线因此同轴可比。同口径 5 期累计：实际 6.81 亿元 vs 中债预测 5.48 亿元。</div><div class="note"><b>清仓回购对回收率的抬升</b>：第 5 期回收流入 5,966.00 万元全部为清仓回购价款（回购起算日 2022-08-31，通知日 2022-11-16），占累计回收 8.76%。剔除回购价款后，自然清收回收额为 62,140.49 万元，对应回收率 15.20%。报告全篇回收率沿用「累计回收 ÷ 入池本息费」（含回购）主口径，此处单列以便与不含回购安排的项目比较。</div><div class="note"><b>预测尾段不再发生</b>：中债预测全周期共 12 个收款期、合计 7.47 亿元，延续至 2024-08-31；本项目已于 2022-12-20 因清仓回购提前终止，其后 7 个预测期次（合计 2.00 亿元）不再产生回收，故全周期达成率 91.14% 系「实际 vs 全周期预测」口径，而非「实际 vs 同期预测」。</div></div></div></div></div><div class="fold rv" id="s4"><div class="fold-h"><span class="ft"><span class="sec-num">④</span> 现金流分配过程（维度③）</span><span class="fold-sum">回收流入 6.81 亿元 ｜ 分配流出 6.75 亿元 ｜ 档数 2</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="card"><div class="ct2">全周期资金分配瀑布 × 分档累计本金走势（单位：亿元）</div><div class="v6-duo" style="margin:0"><div class="chart v6-cap" data-chart="waterfall"><div class="ct">全周期资金分配瀑布<span class="v2c-tag">单位：亿元</span></div><svg viewBox="0 0 680 300" width="100%" role="img" aria-label="全周期资金分配瀑布（期初 → 回收流入 → 逐级扣减 → 期末）" style="width:100%;height:auto;display:block" class="v2c-svg"><text class="v2c-note v2c-valuenote" text-anchor="end" font-size="10.5" fill="#98A2B3" x="676" y="12">单位：亿元</text><line x1="68" y1="246.0" x2="658" y2="246.0" stroke="#C9D2E0" stroke-width="1"></line><text class="v2c-ax" x="58" y="250.0" text-anchor="end" font-size="11" fill="#697487">0.00</text><line x1="68" y1="197.0" x2="658" y2="197.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="201.0" text-anchor="end" font-size="11" fill="#697487">2.00</text><line x1="68" y1="148.0" x2="658" y2="148.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="152.0" text-anchor="end" font-size="11" fill="#697487">4.00</text><line x1="68" y1="99.0" x2="658" y2="99.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="103.0" text-anchor="end" font-size="11" fill="#697487">6.00</text><line x1="68" y1="50.0" x2="658" y2="50.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="54.0" text-anchor="end" font-size="11" fill="#697487">8.00</text><rect x="164" y="17.5" width="9" height="9" rx="2" fill="#1F7A5C"></rect><text class="v2c-leg v2c-wfleg" x="177" y="26" font-size="10.5" fill="#79849A">回收流入</text><rect x="234" y="17.5" width="9" height="9" rx="2" fill="#A52524"></rect><text class="v2c-leg v2c-wfleg" x="247" y="26" font-size="10.5" fill="#79849A">处置费用</text><rect x="304" y="17.5" width="9" height="9" rx="2" fill="#B0763F"></rect><text class="v2c-leg v2c-wfleg" x="317" y="26" font-size="10.5" fill="#79849A">服务报酬</text><rect x="374" y="17.5" width="9" height="9" rx="2" fill="#2D3955"></rect><text class="v2c-leg v2c-wfleg" x="387" y="26" font-size="10.5" fill="#79849A">证券本息</text><rect x="444" y="17.5" width="9" height="9" rx="2" fill="#79849A"></rect><text class="v2c-leg v2c-wfleg" x="457" y="26" font-size="10.5" fill="#79849A">期末余额</text><rect class="v2c-wbar" x="84.2" y="79.1" width="41.3" height="166.9" rx="2" fill="#1F7A5C" opacity="0.9"><title>回收流入｜6.81 亿元</title></rect><text x="104.9" y="74.1" text-anchor="middle" font-size="9.5" fill="#4B5566">6.81</text><text x="104.9" y="264" text-anchor="middle" font-size="9.5" fill="#697487">回收流入</text><rect class="v2c-wbar" x="158.0" y="79.1" width="41.3" height="15.2" rx="2" fill="#A52524" opacity="0.9"><title>处置费用｜0.62 亿元</title></rect><text x="178.6" y="74.1" text-anchor="middle" font-size="9.5" fill="#4B5566">0.62</text><line x1="146.2" y1="94.3" x2="158.0" y2="94.3" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="178.6" y="264" text-anchor="middle" font-size="9.5" fill="#697487">处置费用</text><rect class="v2c-wbar" x="231.7" y="94.3" width="41.3" height="15.0" rx="2" fill="#B0763F" opacity="0.9"><title>服务报酬｜0.61 亿元</title></rect><text x="252.4" y="89.3" text-anchor="middle" font-size="9.5" fill="#4B5566">0.61</text><line x1="219.9" y1="109.3" x2="231.7" y2="109.3" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="252.4" y="264" text-anchor="middle" font-size="9.5" fill="#697487">服务报酬</text><rect class="v2c-wbar" x="305.5" y="109.3" width="41.3" height="1.5" rx="2" fill="#A52524" opacity="0.9"><title>其他费用｜0.02 亿元</title></rect><text x="326.1" y="104.3" text-anchor="middle" font-size="9.5" fill="#4B5566">0.02</text><line x1="293.7" y1="109.9" x2="305.5" y2="109.9" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="326.1" y="264" text-anchor="middle" font-size="9.5" fill="#697487">其他费用</text><rect class="v2c-wbar" x="379.2" y="109.9" width="41.3" height="1.5" rx="2" fill="#A52524" opacity="0.9"><title>增值税｜0.01 亿元</title></rect><text x="399.9" y="104.9" text-anchor="middle" font-size="9.5" fill="#4B5566">0.01</text><line x1="367.4" y1="110.0" x2="379.2" y2="110.0" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="399.9" y="264" text-anchor="middle" font-size="9.5" fill="#697487">增值税</text><rect class="v2c-wbar" x="453.0" y="110.0" width="41.3" height="111.0" rx="2" fill="#2D3955" opacity="0.9"><title>优先档本息｜4.53 亿元</title></rect><text x="473.6" y="105.0" text-anchor="middle" font-size="9.5" fill="#4B5566">4.53</text><line x1="441.2" y1="221.0" x2="453.0" y2="221.0" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="473.6" y="264" text-anchor="middle" font-size="9.5" fill="#697487">优先档本息</text><rect class="v2c-wbar" x="526.7" y="221.0" width="41.3" height="25.0" rx="2" fill="#2D3955" opacity="0.9"><title>次级档本息｜1.02 亿元</title></rect><text x="547.4" y="216.0" text-anchor="middle" font-size="9.5" fill="#4B5566">1.02</text><line x1="514.9" y1="246.0" x2="526.7" y2="246.0" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="547.4" y="264" text-anchor="middle" font-size="9.5" fill="#697487">次级档本息</text><rect class="v2c-wbar" x="600.5" y="246.0" width="41.3" height="1.5" rx="2" fill="#1A2230" opacity="0.9"><title>期末余额｜0.00 亿元</title></rect><text x="621.1" y="241.0" text-anchor="middle" font-size="9.5" fill="#4B5566">0.00</text><line x1="588.7" y1="246.0" x2="600.5" y2="246.0" stroke="#A6AFBE" stroke-width="0.8" stroke-dasharray="2 2"></line><text x="621.1" y="264" text-anchor="middle" font-size="9.5" fill="#697487">期末余额</text><text x="68" y="292" font-size="9.5" fill="#98A2B3">中间项按金额降序排列，非合同支付顺序</text></svg></div><div class="chart v6-cap" data-chart="stack-area"><div class="ct">分档累计本金走势<span class="v2c-tag">单位：亿元 · 堆叠面积</span></div><svg viewBox="0 0 680 300" width="100%" role="img" aria-label="分档累计本金走势" style="width:100%;height:auto;display:block" class="v2c-svg"><text class="v2c-note" x="68" y="16" font-size="10.5" fill="#98A2B3">单位：亿元</text><line x1="68" y1="252.0" x2="658" y2="252.0" stroke="#C9D2E0" stroke-width="1"></line><text class="v2c-ax" x="58" y="256.0" text-anchor="end" font-size="11" fill="#697487">0.00</text><line x1="68" y1="183.3" x2="658" y2="183.3" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="187.3" text-anchor="end" font-size="11" fill="#697487">2.00</text><line x1="68" y1="114.7" x2="658" y2="114.7" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="118.7" text-anchor="end" font-size="11" fill="#697487">4.00</text><line x1="68" y1="46.0" x2="658" y2="46.0" stroke="#E6EBF3" stroke-width="1"></line><text class="v2c-ax" x="58" y="50.0" text-anchor="end" font-size="11" fill="#697487">6.00</text><rect x="490" y="10" width="9" height="9" rx="2" fill="#2D3955"></rect><text x="503" y="18.5" font-size="10.5" fill="#79849A">优先档未偿本金</text><rect x="596" y="10" width="9" height="9" rx="2" fill="#A52524"></rect><text x="609" y="18.5" font-size="10.5" fill="#79849A">次级档未偿本金</text><path d="M68.0,97.5 L186.0,179.8 L304.0,208.7 L422.0,252.0 L540.0,252.0 L658.0,252.0 L658.0,252.0 L540.0,252.0 L422.0,252.0 L304.0,252.0 L186.0,252.0 L68.0,252.0 Z" fill="#2D3955" opacity="0.82"></path><path d="M68.0,70.0 L186.0,152.3 L304.0,181.2 L422.0,224.5 L540.0,252.0 L658.0,252.0 L658.0,252.0 L540.0,252.0 L422.0,252.0 L304.0,208.7 L186.0,179.8 L68.0,97.5 Z" fill="#A52524" opacity="0.82"></path><text class="v6-xlabel" x="68.0" y="280" text-anchor="middle" font-size="11" fill="#697487">发行</text><rect class="v2c-band" data-i="0" x="9.0" y="46" width="118.0" height="206"><title>发行｜优先档未偿本金 4.50 亿元｜次级档未偿本金 0.80 亿元｜合计 5.30 亿元</title></rect><text class="v6-xlabel" x="186.0" y="280" text-anchor="middle" font-size="11" fill="#697487">第1期</text><rect class="v2c-band" data-i="1" x="127.0" y="46" width="118.0" height="206"><title>第1期｜优先档未偿本金 2.10 亿元｜次级档未偿本金 0.80 亿元｜合计 2.90 亿元</title></rect><text class="v6-xlabel" x="304.0" y="280" text-anchor="middle" font-size="11" fill="#697487">第2期</text><rect class="v2c-band" data-i="2" x="245.0" y="46" width="118.0" height="206"><title>第2期｜优先档未偿本金 1.26 亿元｜次级档未偿本金 0.80 亿元｜合计 2.06 亿元</title></rect><text class="v6-xlabel" x="422.0" y="280" text-anchor="middle" font-size="11" fill="#697487">第3期</text><rect class="v2c-band" data-i="3" x="363.0" y="46" width="118.0" height="206"><title>第3期｜优先档未偿本金 0.00 亿元｜次级档未偿本金 0.80 亿元｜合计 0.80 亿元</title></rect><text class="v6-xlabel" x="540.0" y="280" text-anchor="middle" font-size="11" fill="#697487">第4期</text><rect class="v2c-band" data-i="4" x="481.0" y="46" width="118.0" height="206"><title>第4期｜优先档未偿本金 0.00 亿元｜次级档未偿本金 0.00 亿元｜合计 0.00 亿元</title></rect><text class="v6-xlabel" x="658.0" y="280" text-anchor="middle" font-size="11" fill="#697487">第5期</text><rect class="v2c-band" data-i="5" x="599.0" y="46" width="118.0" height="206"><title>第5期｜优先档未偿本金 0.00 亿元｜次级档未偿本金 0.00 亿元｜合计 0.00 亿元</title></rect></svg></div></div></div><div class="card"><div class="ct2">分档逐期矩阵（本金 / 利息，万元）</div><div class="note">优先档本金在第 3 期清零（2022-06-20），次级档本金在第 4 期清零（2022-09-20）。次级档「固定资金成本＋收益」自第 3 期起出现。</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">期次</th><th>支付日</th><th>优先档本金</th><th>优先档利息</th><th>次级档本金</th><th>次级档固资＋收益</th></tr></thead><tbody><tr><td class="l">第1期</td><td>2022-01-20</td><td class="num">23,967.00 万元</td><td class="num">109.11 万元</td><td class="num">0.00 万元</td><td class="num">0.00 万元</td></tr><tr><td class="l">第2期</td><td>2022-03-20</td><td class="num">8,410.50 万元</td><td class="num">100.30 万元</td><td class="num">0.00 万元</td><td class="num">0.00 万元</td></tr><tr><td class="l">第3期</td><td>2022-06-20</td><td class="num">12,622.50 万元</td><td class="num">93.86 万元</td><td class="num">0.00 万元</td><td class="num">136.36 万元</td></tr><tr><td class="l">第4期</td><td>2022-09-20</td><td class="num">0.00 万元</td><td class="num">0.00 万元</td><td class="num">8,000.00 万元</td><td class="num">865.66 万元</td></tr><tr><td class="l">第5期</td><td>2022-12-20</td><td class="num">0.00 万元</td><td class="num">0.00 万元</td><td class="num">0.00 万元</td><td class="num">1,184.02 万元</td></tr><tr class="tot"><td class="l">合计</td><td>—</td><td class="num">45,000.00 万元</td><td class="num">303.26 万元</td><td class="num">8,000.00 万元</td><td class="num">2,186.04 万元</td></tr></tbody></table></div></div><div class="card" data-chart="dist-matrix"><div class="ct2">存续期分配明细矩阵（第1步 → 第17步 · 单位：万元）</div><div class="note"><b>行序＝合同约定的现金流支付顺序</b>（① 费用与税 → ② 证券受偿：优先档利息→本金→次级档固资→本金→收益）；优先/次级本金·利息取<b>分档兑付表</b>（权威）；次级档收益＝固定资金成本＋超额收益；费用取受托机构报告「资产池现金流出情况」；缺失期显示「—」，不补 0。　<b>表尾「其他」行为本单特有的流出科目</b>（其他费用支出），列示以保证明细合计＝合计。</div><b>与信托账户流出的差异</b>：本表取「资产池现金流出」口径，合计 675,460,201.83 元＝累计回收的 99.18%；信托账户本期现金流出合计 681,223,678.52 元（见 ⑥ 节），两者差 <b>5,763,476.69 元</b>，主要为第 2 期向信托（流动性）储备账户补足 5,762,775.44 元及账户间零星结转，属分配顺序表外科目，不影响证券端受偿。<div class="tbl-wrap"><table class="tbl tbl-mtx"><thead><tr><th class="l" style="width:68px">序</th><th class="l" style="width:56px">档位</th><th class="l" style="width:32%">科目</th><th>第1期</th><th>第2期</th><th>第3期</th><th>第4期</th><th>第5期</th><th>累计</th><th style="width:92px">占回收流入</th></tr></thead><tbody><tr data-label="税收" data-cum="629941.0700000001" data-step="1"><td class="l">第1步</td><td class="l">费用</td><td class="l">税收</td><td class="num">53.76</td><td class="num">2.53</td><td class="num">6.70</td><td class="zero">—</td><td class="zero">—</td><td class="num">62.99</td><td>0.09%</td></tr><tr data-label="发行登记服务费" data-cum="10000.0" data-step="2"><td class="l">第2步</td><td class="l">费用</td><td class="l">发行登记服务费</td><td class="num">1.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">1.00</td><td>0.00%</td></tr><tr data-label="承销报酬" data-cum="703000.0" data-step="3"><td class="l">第3步</td><td class="l">费用</td><td class="l">承销报酬</td><td class="num">70.30</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">70.30</td><td>0.10%</td></tr><tr data-label="代理兑付费用" data-cum="27744.649999999998" data-step="4"><td class="l">第4步</td><td class="l">费用</td><td class="l">代理兑付费用</td><td class="num">1.20</td><td class="num">0.43</td><td class="num">0.64</td><td class="num">0.44</td><td class="num">0.06</td><td class="num">2.77</td><td>0.00%</td></tr><tr data-label="受托机构报酬" data-cum="250000.0" data-step="5"><td class="l">第5步</td><td class="l">费用</td><td class="l">受托机构报酬</td><td class="num">25.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">25.00</td><td>0.04%</td></tr><tr data-label="资金保管机构报酬" data-cum="32527.22" data-step="6"><td class="l">第6步</td><td class="l">费用</td><td class="l">资金保管机构报酬</td><td class="num">0.87</td><td class="num">0.94</td><td class="num">1.04</td><td class="num">0.40</td><td class="zero">—</td><td class="num">3.25</td><td>0.00%</td></tr><tr data-label="评级服务费" data-cum="650000.0" data-step="7"><td class="l">第7步</td><td class="l">费用</td><td class="l">评级服务费</td><td class="num">65.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">65.00</td><td>0.10%</td></tr><tr data-label="审计费" data-cum="490000.0" data-step="8"><td class="l">第8步</td><td class="l">费用</td><td class="l">审计费</td><td class="num">45.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">4.00</td><td class="num">49.00</td><td>0.07%</td></tr><tr data-label="律师费" data-cum="300000.0" data-step="9"><td class="l">第9步</td><td class="l">费用</td><td class="l">律师费</td><td class="num">30.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">30.00</td><td>0.04%</td></tr><tr data-label="处置费用" data-cum="61921457.9" data-step="10"><td class="l">第10步</td><td class="l">费用</td><td class="l">处置费用</td><td class="num">967.56</td><td class="num">1,601.41</td><td class="num">1,936.64</td><td class="num">1,686.53</td><td class="zero">—</td><td class="num">6,192.15</td><td>9.09%</td></tr><tr data-label="优先档利息" data-cum="3032613.73" data-step="11"><td class="l">第11步</td><td class="l">证券</td><td class="l">优先档利息</td><td class="num">109.11</td><td class="num">100.30</td><td class="num">93.86</td><td class="zero">—</td><td class="zero">—</td><td class="num">303.26</td><td>0.45%</td></tr><tr data-label="优先档本金" data-cum="450000000.0" data-step="12"><td class="l">第12步</td><td class="l">证券</td><td class="l">优先档本金</td><td class="num">23,967.00</td><td class="num">8,410.50</td><td class="num">12,622.50</td><td class="zero">—</td><td class="zero">—</td><td class="num">45,000.00</td><td>66.07%</td></tr><tr data-label="贷款服务机构报酬" data-cum="61355999.199999996" data-step="13"><td class="l">第13步</td><td class="l">费用</td><td class="l">贷款服务机构报酬</td><td class="zero">—</td><td class="zero">—</td><td class="num">371.08</td><td class="num">983.82</td><td class="num">4,780.70</td><td class="num">6,135.60</td><td>9.01%</td></tr><tr data-label="次级档固定资金成本" data-cum="7778630.13" data-step="14"><td class="l">第14步</td><td class="l">证券</td><td class="l">次级档固定资金成本</td><td class="zero">—</td><td class="zero">—</td><td class="num">136.36</td><td class="num">641.50</td><td class="zero">—</td><td class="num">777.86</td><td>1.14%</td></tr><tr data-label="次级档本金" data-cum="80000000.0" data-step="15"><td class="l">第15步</td><td class="l">证券</td><td class="l">次级档本金</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">8,000.00</td><td class="zero">—</td><td class="num">8,000.00</td><td>11.75%</td></tr><tr data-label="次级档收益" data-cum="14081764.62" data-step="16"><td class="l">第16步</td><td class="l">证券</td><td class="l">次级档收益</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">224.16</td><td class="num">1,184.02</td><td class="num">1,408.18</td><td>2.07%</td></tr><tr data-label="其他费用支出" data-cum="1000.0" data-step="17"><td class="l">第17步</td><td class="l">其他</td><td class="l">其他费用支出</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">0.10</td><td class="num">0.10</td><td>0.00%</td></tr><tr class="tot" data-label="未归集"><td class="l">差额</td><td class="l">其他</td><td class="l">未归集流出</td><td class="num">1,122.56</td><td class="num">0.00</td><td class="num">-1,703.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">-580.45</td><td>-0.85%</td></tr><tr class="tot"><td class="l">合计</td><td class="l">—</td><td class="l">—</td><td class="num">26,458.36</td><td class="num">10,116.10</td><td class="num">13,465.82</td><td class="num">11,536.86</td><td class="num">5,968.88</td><td class="num">67,546.02</td><td>99.18%</td></tr></tbody></table></div></div><div class="card" data-chart="fee-block"><div class="ct2">处置费用（合同口径 / 实际费率 / 是否超限）</div><div class="note"><b>合同口径</b>：处置费用 ｜ 上限：累计回收款的 17% （源：发行说明书 p87，第 (d)/(i) 项——不高于 17 部分列于优先档利息与本金之前，超过部分劣后至优先档本金之后）</div><div class="kpi-row"><div class="kpi"><div class="k">合同上限（源）</div><div class="v" style="font-size:13px">累计回收款的 17%</div></div><div class="kpi"><div class="k">实际费率（现算）</div><div class="v" style="font-size:13px">9.09%（= 处置费用 0.62 亿元 ÷ 实际回收流入 6.81 亿元）</div></div><div class="kpi"><div class="k">是否超限</div><div class="v" style="font-size:13px"><b>未超限</b>（实际 9.09% ≤ 合同上限 17%）</div></div></div><div class="note">基数差异注：合同上限的分母为「累计回收款」，本处实际费率分母为「累计回收」，两者同源同口径，可直接比对。</div><div class="note">相关费用/上限：<ul class="cal"><li>贷款服务机构基本服务费：按《服务合同》约定（p87 第 j 项）</li><li>超额奖励服务费：次级档本金偿清后剩余金额的 80%（p87 第 m 项）</li></ul></div><div class="note">累计处置费用 6,192.15 万元（来源：受托机构报告各期「资产池现金流出情况」处置费用科目）</div></div><div class="fold rv collapsed"><div class="fold-h"><span class="ft">其余分配科目（明细·默认收起）</span><span class="fold-sum">其余科目 6 项</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">档位</th><th class="l">科目</th><th>第1期</th><th>第2期</th><th>第3期</th><th>第4期</th><th>第5期</th><th>累计（万元）</th><th>占回收流入</th></tr></thead><tbody><tr><td class="l">费用</td><td class="l">税收</td><td class="num">53.76</td><td class="num">2.53</td><td class="num">6.70</td><td class="zero">—</td><td class="zero">—</td><td class="num">62.99</td><td>0.09%</td></tr><tr><td class="l">费用</td><td class="l">代理兑付费用</td><td class="num">1.20</td><td class="num">0.43</td><td class="num">0.64</td><td class="num">0.44</td><td class="num">0.06</td><td class="num">2.77</td><td>0.00%</td></tr><tr><td class="l">费用</td><td class="l">资金保管机构报酬</td><td class="num">0.87</td><td class="num">0.94</td><td class="num">1.04</td><td class="num">0.40</td><td class="zero">—</td><td class="num">3.25</td><td>0.00%</td></tr><tr><td class="l">费用</td><td class="l">贷款服务机构报酬</td><td class="zero">—</td><td class="zero">—</td><td class="num">371.08</td><td class="num">983.82</td><td class="num">4,780.70</td><td class="num">6,135.60</td><td>9.01%</td></tr><tr><td class="l">费用</td><td class="l">审计费</td><td class="num">45.00</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">4.00</td><td class="num">49.00</td><td>0.07%</td></tr><tr><td class="l">证券</td><td class="l">次级档收益</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="num">224.16</td><td class="num">1,184.02</td><td class="num">1,408.18</td><td>2.07%</td></tr></tbody></table></div></div></div></div></div></div></div></div></div><div class="fold rv" id="s6"><div class="fold-h"><span class="ft"><span class="sec-num">⑤</span> XIRR 与 XNPV</span><span class="fold-sum">XNPV@Rf 2.38% ｜ 优先档 XIRR 2.99% ｜ 次级档 36.72%</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="card" data-chart="xirr-cards"><div class="ct2">XIRR 与 XNPV 结果</div><div class="grid2"><div class="tl" data-xirr="0.02986762761714041" data-xnpv="606278.3029313534" data-rate="0.0238"><div class="l">优先档 XIRR</div><div class="v">2.99%</div><div class="s">票面 2.95%；与票面偏差 +3.68 bp</div><div class="s">XNPV@Rf 2.38%＝60.63 万元</div><div class="s">折现率＝1 年期国债到期收益率 2.38%（2021-12-21，中债国债收益率曲线）</div></div><div class="tl" data-xirr-sub="0.36719084017822257" data-xnpv-rf="20024024.10563694"><div class="l">次级档 XIRR</div><div class="v">36.72%</div><div class="s">回报倍数 1.273x</div><div class="s">XNPV@Rf 2.38%＝2,002.40 万元</div><div class="s">折现率＝1 年期国债到期收益率 2.38%（2021-12-21，中债国债收益率曲线）</div></div></div><div class="note"><b>口径说明</b>：XIRR 为<b>货币加权（复利）年化收益率</b>，与票面利率<b>不可直接比较</b>；折现因子＝(1+r)^(距设立日天数 ÷ 365)，区间自期初（信托设立日 2021-12-21）至末期。两档本金全额兑付、账户配平成立 → 本单为<b>终局值</b>。</div><div class="note">信托设立日 2021-12-21（来源：发行说明书 p2 封面；成立公告同）</div></div><div class="card" data-chart="xnpv-table"><div class="ct2">XNPV 折现表（折现率＝无风险利率 Rf 2.38%，两档分列 · 单位：万元）</div><div class="note"><b>折现率选择</b>：Rf 取<b>1 年期国债到期收益率 2.38%（2021-12-21，中债国债收益率曲线）</b>。选 1 年期，是因为本单存续期仅 12 个月、优先档加权平均期限 0.38 年、次级档 2.17 年（发行说明书 p3），久期最接近 1 年。</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>序号</th><th>现金流日期</th><th>距设立日天数</th><th>折现系数</th><th>优先档现金流</th><th>优先档现值</th><th>次级档现金流</th><th>次级档现值</th></tr></thead><tbody><tr><td>0 期初（信托设立日）</td><td>2021-12-21</td><td class="num">0</td><td class="num">1.000000000</td><td class="num">-45,000.00</td><td class="num">-45,000.00</td><td class="num">-8,000.00</td><td class="num">-8,000.00</td></tr><tr><td>1</td><td>2022-01-20</td><td class="num">30</td><td class="num">0.998068619</td><td class="num">24,076.11</td><td class="num">24,029.61</td><td class="num zero">—</td><td class="num zero">—</td></tr><tr><td>2</td><td>2022-03-20</td><td class="num">89</td><td class="num">0.994281110</td><td class="num">8,510.80</td><td class="num">8,462.12</td><td class="num zero">—</td><td class="num zero">—</td></tr><tr><td>3</td><td>2022-06-20</td><td class="num">181</td><td class="num">0.988403825</td><td class="num">12,716.36</td><td class="num">12,568.89</td><td class="num">136.36</td><td class="num">134.78</td></tr><tr><td>4</td><td>2022-09-20</td><td class="num">273</td><td class="num">0.982561281</td><td class="num zero">—</td><td class="num zero">—</td><td class="num">8,865.66</td><td class="num">8,711.06</td></tr><tr><td>5</td><td>2022-12-20</td><td class="num">364</td><td class="num">0.976816218</td><td class="num zero">—</td><td class="num zero">—</td><td class="num">1,184.02</td><td class="num">1,156.57</td></tr><tr class="tot"><td>合计</td><td>—</td><td>—</td><td>—</td><td class="num">303.26</td><td class="num">60.63</td><td class="num">2,186.04</td><td class="num">2,002.40</td></tr></tbody></table></div><div class="note">计算用精确解：优先档 XIRR＝0.0298676276、次级档 XIRR＝0.3671908402；XNPV 按 Rf＝0.0238 折现，上表合计即两档现值。「—」表示该日期该档无现金流，不补 0。</div></div><div class="card"><div class="ct2">折现率敏感性（Rf ±50bp）</div><div class="note">Rf 变动 50bp 对两档现值的影响；现值＝未来现金流按该利率折现后的合计，与发行价（面值 100 元）比较即可读出「按无风险利率衡量的价值溢价」。</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">折现率情景</th><th>Rf 取值</th><th>优先档 XNPV</th><th>次级档 XNPV</th><th>两档合计</th></tr></thead><tbody><tr><td class="l">-50 bp</td><td class="num">1.88%</td><td class="num">110.96</td><td class="num">2,040.35</td><td class="num">2,151.30</td></tr><tr><td class="l">基准</td><td class="num">2.38%</td><td class="num">60.63</td><td class="num">2,002.40</td><td class="num">2,063.03</td></tr><tr><td class="l">+50 bp</td><td class="num">2.88%</td><td class="num">10.63</td><td class="num">1,964.79</td><td class="num">1,975.42</td></tr></tbody></table></div><div class="note">对照：按优先档票面 2.95% 折现，优先档 XNPV＝3.66 万元。XIRR 即令 XNPV＝0 的折现率，故该值应在 0 附近——与 Rf 口径的差额即「相对无风险利率的溢价」。</div></div><div class="fold rv collapsed"><div class="fold-h"><span class="ft">折现过程自校验（按 XIRR 折现 · 默认收起）</span><span class="fold-sum">信托设立日 2021-12-21</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="note">本块用各档自身 XIRR 作折现率，XNPV 合计应≈0（残差为天数取整所致），用于校验上表 XNPV 的算法一致性；主口径现值见上表（按 Rf 折现）。</div><div class="ct2">优先档折现过程</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>序号</th><th>支付日</th><th>距设立日天数</th><th>现金流</th><th>折现系数</th><th>现值</th></tr></thead><tbody><tr><td>0 期初（信托设立日）</td><td>2021-12-21</td><td>0</td><td class="num">-45,000.00 万元</td><td class="num">1.000000000</td><td class="num">-45,000.00 万元</td></tr><tr><td>1</td><td>2022-01-20</td><td>30</td><td class="num">24,076.11 万元</td><td class="num">0.997583996</td><td class="num">24,017.94 万元</td></tr><tr><td>2</td><td>2022-03-20</td><td>89</td><td class="num">8,510.80 万元</td><td class="num">0.992849537</td><td class="num">8,449.94 万元</td></tr><tr><td>3</td><td>2022-06-20</td><td>181</td><td class="num">12,716.36 万元</td><td class="num">0.985511787</td><td class="num">12,532.12 万元</td></tr><tr class="tot"><td>合计</td><td>—</td><td>—</td><td class="num">303.26 万元</td><td>—</td><td class="num">0.00 万元</td></tr></tbody></table></div><div class="ct2" style="margin-top:14px">次级档折现过程</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>序号</th><th>支付日</th><th>距设立日天数</th><th>现金流</th><th>折现系数</th><th>现值</th></tr></thead><tbody><tr><td>0 期初（信托设立日）</td><td>2021-12-21</td><td>0</td><td class="num">-8,000.00 万元</td><td class="num">1.000000000</td><td class="num">-8,000.00 万元</td></tr><tr><td>1</td><td>2022-06-20</td><td>181</td><td class="num">136.36 万元</td><td class="num">0.856334876</td><td class="num">116.77 万元</td></tr><tr><td>2</td><td>2022-09-20</td><td>273</td><td class="num">8,865.66 万元</td><td class="num">0.791420410</td><td class="num">7,016.47 万元</td></tr><tr><td>3</td><td>2022-12-20</td><td>364</td><td class="num">1,184.02 万元</td><td class="num">0.732053792</td><td class="num">866.77 万元</td></tr><tr class="tot"><td>合计</td><td>—</td><td>—</td><td class="num">2,186.04 万元</td><td>—</td><td class="num">0.00 万元</td></tr></tbody></table></div><div class="note">计算用精确解：优先档 r＝0.0298676276，次级档 r＝0.3671908402；展示层统一 2 位小数。</div></div></div></div></div></div></div></div></div><div class="fold rv collapsed" id="s8"><div class="fold-h"><span class="ft"><span class="sec-num">⑥</span> 账户勾稽</span><span class="fold-sum">5/5 配平 ｜ 期末权益 6.26 万元</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="card"><div class="ct2">逐期账户勾稽（期初 ＋ 流入 − 流出 ＝ 期末，单位：元）</div><div class="note">口径：受托机构报告「信托账户和子账户本期核算概况」<b>总信托账户</b>行，逐期以「期初余额 ＋ 本期现金流入总额 − 本期现金流出总额 ＝ 期末余额」校验；「差额」列全为 0.00 即为配平（本项目 5/5 配平）。注：资产池未偿本息余额（40.87 亿元起逐期递减）是<b>资产口径</b>，不参与账户勾稽，两者不可混列。</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">期次</th><th>支付日</th><th>期初余额</th><th>本期流入</th><th>本期流出</th><th>期末余额</th><th>差额</th><th>状态</th></tr></thead><tbody><tr><td class="l">第1期</td><td>2022-01-20</td><td class="num">0.00</td><td class="num">264,591,479.78</td><td class="num">251,255,074.92</td><td class="num">13,336,404.86</td><td class="num">0.00</td><td>配平</td></tr><tr><td class="l">第2期</td><td>2022-03-20</td><td class="num">13,336,404.86</td><td class="num">106,957,632.80</td><td class="num">101,360,989.15</td><td class="num">18,933,048.51</td><td class="num">0.00</td><td>配平</td></tr><tr><td class="l">第3期</td><td>2022-06-20</td><td class="num">18,933,048.51</td><td class="num">134,658,199.38</td><td class="num">152,391,247.89</td><td class="num">1,200,000.00</td><td class="num">0.00</td><td>配平</td></tr><tr><td class="l">第4期</td><td>2022-09-20</td><td class="num">1,200,000.00</td><td class="num">115,368,594.44</td><td class="num">115,868,594.44</td><td class="num">700,000.00</td><td class="num">0.00</td><td>配平</td></tr><tr><td class="l">第5期</td><td>2022-12-20</td><td class="num">700,000.00</td><td class="num">59,688,772.12</td><td class="num">60,347,772.12</td><td class="num">41,000.00</td><td class="num">0.00</td><td>配平</td></tr><tr class="tot"><td class="l">全周期</td><td>—</td><td class="num">0.00</td><td class="num">681,264,678.52</td><td class="num">681,223,678.52</td><td class="num">41,000.00</td><td class="num">0.00</td><td>配平</td></tr></tbody></table></div></div><div class="card"><div class="ct2">资金平衡（全周期）</div><div class="accm"><div class="box"><div class="bl">累计回收款</div><div class="bv">6.81 亿元</div></div><div class="op">+</div><div class="box"><div class="bl">信托专户结息</div><div class="bv">24.14 万元</div></div><div class="op">−</div><div class="box"><div class="bl">信托费用</div><div class="bv">1.26 亿元</div></div><div class="op">−</div><div class="box"><div class="bl">增值税及附加</div><div class="bv">62.99 万元</div></div><div class="op">−</div><div class="box"><div class="bl">证券本息</div><div class="bv">5.55 亿元</div></div><div class="op">=</div><div class="box"><div class="bl">期末持有人权益</div><div class="bv">6.26 万元</div></div></div><div class="note">恒等式校验：681,064,948.63 ＋ 241,360.13 − （125,720,728.97 ＋ 629,941.07 ＋ 554,893,008.48）＝ <b>62,630.24</b>，与清算报告「清算结束日持有人权益」完全一致。</div></div><div class="card"><div class="ct2">差异分析与清算衔接</div><div class="note">受托报告 5 期信托账户累计：流入 <b>681,264,678.52 元</b>、流出 <b>681,223,678.52 元</b>，第 5 期末余额 <b>41,000.00 元</b>，五期勾稽差额均为 <b>0.00 元</b>。</div><div class="note">清算期追加：清算净收益 <b>41,630.24 元</b>（专户存款利息收入，发生于信托终止后），与第 5 期末余额合计 <b>82,630.24 元</b>，与清算审计报告「清算结束日剩余信托财产」完全一致。</div><div class="note">再扣预提清算审计费 20,000.00 元（中审众环会计师事务所（特殊普通合伙））后，清算开始日持有人权益为 <b>21,000.00 元</b>，加清算净收益 41,630.24 元，等于清算结束日持有人权益 <b>62,630.24 元</b>；清算净收益全部计入持有人权益、未向证券持有人分配。审计意见：标准无保留意见（众环专字〔2023〕2700013 号），清算报告专项复核说明：众环综字〔2023〕2700002 号。</div></div></div></div></div></div><div class="fold rv" id="s9"><div class="fold-h"><span class="ft"><span class="sec-num">⑦</span> 核心结论</span><span class="fold-sum">兑付 优先100.00%/次级100.00% ｜ 优先XIRR 2.99% ｜ 信托计划已终止 · 清算完成 2023-02-14</span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="grid2"><div class="card"><h3>① 兑付终局性</h3><div class="cc"><div class="cnl"><p>优先档本金累计兑付率 <b>100.00%</b>（Σ优先档本金 4.50 亿元 ÷ 发行 4.50 亿元）。</p><p>次级档本金累计兑付率 <b>100.00%</b>（Σ次级档本金 0.80 亿元 ÷ 发行 0.80 亿元）。</p><p>本信托计划已终止 · 清算完成 2023-02-14。</p><p>清仓回购：发起机构于 2022-11-16 发出《清仓回购通知书》，回购起算日 2022-08-31，回购价款 <b>5,966.00 万元</b>。</p></div></div></div><div class="card"><h3>② 回收与成本</h3><div class="cc"><div class="cnl"><p>全周期实际回收流入 <b>6.81 亿元</b>，为入池本息费（408,703.54 万元）的 <b>16.66%</b>。</p><p>处置费用累计 <b>0.62 亿元</b>，占回收流入 <b>9.09%</b>，未触及合同 17% 上限。</p><p>服务报酬 6,135.60 万元（9.01%）＋税费 62.99 万元（0.09%）＋其他信托费用 244.33 万元，费用端合计占回收 <b>18.46%</b>。</p></div></div></div><div class="card"><h3>③ 时间与收益</h3><div class="cc"><div class="cnl"><p>优先档 XIRR <b>2.99%</b>（票面 2.95%；货币加权，与票面不可直接比较）。</p><p>次级档 XIRR <b>36.72%</b>，回报倍数 1.273x。</p><p>优先档本金 6 个月清零、次级档 9 个月清零，信托存续 <b>12 个月</b>即终止——远快于说明书预测的 2024-08 回收完毕。</p></div></div></div><div class="card"><h3>④ 数据质量与风险提示</h3><div class="cc"><div class="cnl" data-w-dqcard="1"><p class="w-dqsum" data-w-dqsum="1">数据质量：完整度高 ｜ 缺项 0 ｜ 口径注 3 ｜ 来源 2 ｜ 材料缺 3 类　（明细见 ⑧）</p></div></div></div></div><div class="card" data-chart="peer-strip" style="margin-top:14px"><h3>⑤ 同业定位：23 单信用卡不良清算项目分位对照</h3><svg viewBox="0 0 680 354" width="100%" role="img" aria-label="同业分位对照" style="width:100%;height:auto;display:block" class="v2c-svg"><text x="156" y="16" font-size="10.5" fill="#98A2B3">横轴：同业全距（23 单信用卡不良，浅带为四分位区间，刻度为中位）</text><text x="148" y="50" text-anchor="end" font-size="11" fill="#4B5566">回收率</text><line x1="156" y1="46" x2="480" y2="46" stroke="#E6EBF3" stroke-width="1"></line><rect x="255.6" y="41.5" width="56.8" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="291.1" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="280.7" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="293.1" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="369.8" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="376.7" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="299.1" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="312.4" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="231.8" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="260.2" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="250.3" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="279.1" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="255.6" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="211.9" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="270.7" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="269.8" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="263.3" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="264.5" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="354.9" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="386.5" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="179.7" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="46" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="274.9" y1="40" x2="274.9" y2="52" stroke="#4B5566" stroke-width="1.4"></line><circle cx="379.8" cy="46" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>回收率：惠元 16.66% ｜ 同业中位 10.05%</title></circle><text x="490" y="50" font-size="10.5" fill="#1A2230">16.66%</text><text x="538" y="50" font-size="10" fill="#697487">中位 10.05% · 分位 91</text><text x="148" y="92" text-anchor="end" font-size="11" fill="#4B5566">预测回收率</text><line x1="156" y1="88" x2="480" y2="88" stroke="#E6EBF3" stroke-width="1"></line><rect x="264.4" y="83.5" width="70.6" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="275.9" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="274.2" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="283.8" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="436.8" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="425.5" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="287.8" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="324.9" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="267.3" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="293.2" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="284.6" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="335.1" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="264.7" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="226.1" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="266.9" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="264.4" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="256.7" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="258.8" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="347.4" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="355.7" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="180.7" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="88" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="279.8" y1="82" x2="279.8" y2="94" stroke="#4B5566" stroke-width="1.4"></line><circle cx="390.7" cy="88" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>预测回收率：惠元 18.28% ｜ 同业中位 10.82%</title></circle><text x="490" y="92" font-size="10.5" fill="#1A2230">18.28%</text><text x="538" y="92" font-size="10" fill="#697487">中位 10.82% · 分位 86</text><text x="148" y="134" text-anchor="end" font-size="11" fill="#4B5566">达成率</text><line x1="156" y1="130" x2="480" y2="130" stroke="#E6EBF3" stroke-width="1"></line><rect x="229.0" y="125.5" width="170.7" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="427.7" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="390.0" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="399.7" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="208.0" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="188.1" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="429.3" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="412.2" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="197.3" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="229.0" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="218.0" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="277.1" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="379.6" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="387.6" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="396.1" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="391.3" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="378.8" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="445.6" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="373.1" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="386.5" cy="130" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="386.5" y1="124" x2="386.5" y2="136" stroke="#4B5566" stroke-width="1.4"></line><circle cx="326.8" cy="130" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>达成率：惠元 91.14% ｜ 同业中位 99.26%</title></circle><text x="490" y="134" font-size="10.5" fill="#1A2230">91.14%</text><text x="538" y="134" font-size="10" fill="#697487">中位 99.26% · 分位 33</text><text x="148" y="176" text-anchor="end" font-size="11" fill="#4B5566">证券化率</text><line x1="156" y1="172" x2="480" y2="172" stroke="#E6EBF3" stroke-width="1"></line><rect x="263.4" y="167.5" width="57.0" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="292.7" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="272.7" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="279.6" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="387.8" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="403.0" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="299.8" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="315.6" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="260.1" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="287.9" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="280.0" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="320.4" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="257.9" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="224.9" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="278.6" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="273.9" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="263.4" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="265.8" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="353.9" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="362.5" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.8" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="172" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="279.8" y1="166" x2="279.8" y2="178" stroke="#4B5566" stroke-width="1.4"></line><circle cx="384.8" cy="172" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>证券化率：惠元 12.97% ｜ 同业中位 7.71%</title></circle><text x="490" y="176" font-size="10.5" fill="#1A2230">12.97%</text><text x="538" y="176" font-size="10" fill="#697487">中位 7.71% · 分位 86</text><text x="148" y="218" text-anchor="end" font-size="11" fill="#4B5566">处置费率</text><line x1="156" y1="214" x2="480" y2="214" stroke="#E6EBF3" stroke-width="1"></line><rect x="257.3" y="209.5" width="55.0" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="187.1" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="283.2" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="294.2" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="418.2" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="205.0" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="209.7" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="339.0" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="287.9" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="330.0" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="321.8" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="267.3" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="250.4" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="246.2" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="257.3" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="261.5" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="259.0" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="271.8" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="271.8" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="271.8" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="327.1" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="312.4" cy="214" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="271.8" y1="208" x2="271.8" y2="220" stroke="#4B5566" stroke-width="1.4"></line><circle cx="211.2" cy="214" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>处置费率：惠元 9.09% ｜ 同业中位 18.00%</title></circle><text x="490" y="218" font-size="10.5" fill="#1A2230">9.09%</text><text x="538" y="218" font-size="10" fill="#697487">中位 18.00% · 分位 17</text><text x="148" y="260" text-anchor="end" font-size="11" fill="#4B5566">优先档 XIRR</text><line x1="156" y1="256" x2="480" y2="256" stroke="#E6EBF3" stroke-width="1"></line><rect x="228.7" y="251.5" width="113.0" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="247.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="341.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="455.2" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="347.4" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="247.0" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="457.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="323.1" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="323.1" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="248.4" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="226.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="214.5" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="321.6" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="213.0" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="342.9" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="249.2" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="228.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="262.9" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="199.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="245.4" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.7" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="372.0" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="396.5" cy="256" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="249.2" y1="250" x2="249.2" y2="262" stroke="#4B5566" stroke-width="1.4"></line><circle cx="409.2" cy="256" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>优先档 XIRR：惠元 2.99% ｜ 同业中位 2.31%</title></circle><text x="490" y="260" font-size="10.5" fill="#1A2230">2.99%</text><text x="538" y="260" font-size="10" fill="#697487">中位 2.31% · 分位 91</text><text x="148" y="302" text-anchor="end" font-size="11" fill="#4B5566">次级档 XIRR</text><line x1="156" y1="298" x2="480" y2="298" stroke="#E6EBF3" stroke-width="1"></line><rect x="195.6" y="293.5" width="19.7" height="9" rx="2" fill="#2D3955" fill-opacity=".14"></rect><circle cx="340.9" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="214.5" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="225.4" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="221.5" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="212.1" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="209.8" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="215.3" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="207.4" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="187.4" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="213.3" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="192.4" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="195.1" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="193.9" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="196.0" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="197.3" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="210.8" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="230.3" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="222.8" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="178.3" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="195.6" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="306.2" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="195.5" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><circle cx="196.5" cy="298" r="2.4" fill="#98A2B3" fill-opacity=".45"></circle><line x1="209.8" y1="292" x2="209.8" y2="304" stroke="#4B5566" stroke-width="1.4"></line><circle cx="457.7" cy="298" r="5" fill="#A52524" stroke="#fff" stroke-width="1.8"><title>次级档 XIRR：惠元 36.72% ｜ 同业中位 11.60%</title></circle><text x="490" y="302" font-size="10.5" fill="#1A2230">36.72%</text><text x="538" y="302" font-size="10" fill="#697487">中位 11.60% · 分位 100</text></svg><div class="note">样本：技能口径库内 23 单已清算信用卡不良 ABS（不含本单），指标定义与本报告一致——回收率＝累计回收 ÷ 入池本息费；处置费率＝处置费用 ÷ 累计回收；达成率＝累计回收 ÷ 中债预计回收；证券化率＝发行规模 ÷ 入池本息费；XIRR 为货币加权口径。分位＝同业中严格低于本单的样本占比（100＝同业最高）；浅带为该指标的四分位区间，竖刻度为同业中位，实心红点为惠元。</div><div class="note"><b>读法</b>：分位高于 75 的指标为「次级档 XIRR 100、优先档 XIRR 91、回收率 91、预测回收率 86、证券化率 86」；处置费率 9.09%（分位 17）与达成率 91.14%（分位 33）低于同业中位。两组信号并不矛盾：回收率、证券化率、次级档收益偏高，主要来自<b>清仓回购提前终止</b>（存续仅 12 个月、次级档 9 个月即收回本金），而非自然清收超出预期——剔除回购价款后自然清收回收率为 15.20%；达成率衡量的恰是「自然回收 vs 中债全周期预测」，本单因此低于同业中位。处置费率低则反映本单委外催收周期短、按回收额计费的费用随回收前置而集中释放。</div></div></div></div></div></div><div class="fold rv collapsed" id="s10"><div class="fold-h"><span class="ft"><span class="sec-num">⑧</span> 数据质量与披露</span><span class="fold-sum">披露 <span class="dq-n">12 项</span></span><span class="pm">＋</span></div><div class="fold-b"><div><div class="inner"><div class="dq-ov" data-w-dqov="1"><span class="dq-ov-t">披露概览：</span>共 12 项 ｜ 已回源补全 9 项 ｜ 源未披露 0 项 ｜ 源文件缺失 3 项</div><div class="dq3"><div class="dq-sec"><p class="dq-t">① 数据完整度</p><div class="dq-b">本单核心字段齐全，无缺项；入池资产分布（10 类）、分档本金·利息、费用与税款、逐期回收流入、信托账户五期收支、清算收支均已归集并交叉校验，12 项勾稽（含信托账户 5 期配平、证券本息与分配表交叉、清算剩余财产衔接）全部通过。</div><details class="dq-mat" data-w-mat="1"><summary>缺失材料 <span class="dq-mat-n">3 项</span><span class="dq-mat-s">· 依据：资产池为中债披露文件 · 点开看逐项影响</span></summary><table class="dq-mt"><thead><tr><th style="width:24%">材料名称</th><th style="width:15%">是否影响主结论</th><th style="width:61%">说明</th></tr></thead><tbody><tr><td class="mn">法律意见书</td><td class="mi"><span class="no">否</span></td><td>合规类，不含现金流与分配数据</td></tr><tr><td class="mn">会计意见书</td><td class="mi"><span class="no">否</span></td><td>合规类，不含现金流与分配数据</td></tr><tr><td class="mn">跟踪评级报告</td><td class="mi"><span class="no">否</span></td><td>外部分析观点，报告不引用评级</td></tr></tbody></table><div class="dq-mf">本报告主结论仅取决于发行说明书与受托机构报告（二者本单齐备，含 5 期受托机构报告、清算审计报告与清算报告复核）；上述材料不承载现金流数据，故不影响任何数值结论。</div></details></div><div class="dq-sec"><p class="dq-t">② 口径注解</p><div class="dq-b">证券化率 12.97% 以入池本息费为分母（若以入池本金 35.73 亿元为分母则为 14.83%，比较时请注意分母口径）；处置费率分母唯一为<b>累计回收</b>；预计回收采用中债口径（18.28%，中债资信测算）；达成率＝实际回收率 ÷ 预测回收率；XIRR 为货币加权口径，与票面利率不可直接比较；次级档不做资金成本倒算（无披露字段）。</div></div><div class="dq-sec"><p class="dq-t">③ 来源依据</p><div class="dq-b">发行说明书（681 页）；受托机构报告 2022 年度第 1–5 期；簿记建档发行结果公告；成立公告；重大事件报告书；清算审计报告；清算报告专项复核说明；中债资信与联合资信评级报告。金额单位：亿元 2 位 / 万元 2 位；比率百分号 2 位；缺失一律记「—」，不臆造。</div></div></div></div></div></div></div>
+    <div class="foot">数据来源：中国债券信息网披露文件（发行说明书、受托机构报告 5 期、清算审计报告、清算报告） ｜ 口径：清算期穿透分析，各节内逐一注明 ｜ 金额单位：亿元 2 位 / 万元 2 位，比率百分号 2 位 ｜ 项目主键：惠元2021年第三期</div>
+  </section>
+</main></div>
+<div class="scrim" id="scrim"></div>
+<script>
+(function(){
+  var sidebar=document.getElementById('sidebar'), scrim=document.getElementById('scrim'),
+      hb=document.getElementById('hamburger'), crumb=document.getElementById('crumb');
+  function setCrumb(){
+    if(crumb) crumb.innerHTML='<b>不良ABS 穿透</b> ＞ 股份制商业银行 ＞ 中信银行 ＞ 惠元2021年第三期';
+  }
+  // 折叠
+  document.querySelectorAll('.fold-h').forEach(function(h){
+    h.addEventListener('click',function(){h.parentElement.classList.toggle('collapsed');});
+  });
+  // 侧栏条目：滚到对应节
+  document.querySelectorAll('.sb-item').forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var id=a.getAttribute('data-sec');
+      var t=id?document.getElementById(id):null;
+      if(t){
+        var f=t.closest('.fold');
+        if(f) f.classList.remove('collapsed');
+        t.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('on');});
+      a.classList.add('on');
+      if(window.innerWidth<=1024&&sidebar){sidebar.classList.remove('open');if(scrim)scrim.classList.remove('on');}
+    });
+  });
+  // 分组折叠
+  document.querySelectorAll('.sb-ghead,.sb-thead').forEach(function(g){
+    g.addEventListener('click',function(){g.parentElement.classList.toggle('collapsed');});
+  });
+  // 搜索
+  var s=document.getElementById('search');
+  if(s) s.addEventListener('input',function(){
+    var q=s.value.trim().toLowerCase();
+    document.querySelectorAll('.sb-item').forEach(function(it){
+      it.style.display=(!q||it.textContent.toLowerCase().indexOf(q)>=0)?'':'none';
+    });
+  });
+  // 抽屉
+  if(hb&&sidebar&&scrim){
+    hb.addEventListener('click',function(){sidebar.classList.toggle('open');scrim.classList.toggle('on');});
+    scrim.addEventListener('click',function(){sidebar.classList.remove('open');scrim.classList.remove('on');});
+  }
+  // 滚动高亮
+  var secs=[].slice.call(document.querySelectorAll('.fold[id]'));
+  window.addEventListener('scroll',function(){
+    var y=window.scrollY+130,cur=null;
+    secs.forEach(function(x){if(x.offsetTop<=y)cur=x;});
+    if(cur) document.querySelectorAll('.sb-item').forEach(function(a){
+      a.classList.toggle('on',a.getAttribute('data-sec')===cur.id);
+    });
+  },{passive:true});
+  setCrumb();
+  document.querySelectorAll('.rv').forEach(function(n){n.classList.add('in');});
+})();
+</script></body></html>

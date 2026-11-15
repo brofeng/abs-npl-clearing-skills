@@ -1,0 +1,23 @@
+# 本项目是「字节级可复刻」导向：产物与基线文件的换行必须原样保留。
+# 因此 skills/ 下所有文件一律不做 EOL 转换（-text），否则 clone 后
+# golden 哈希 / V9 字节基线会让 G1 门禁全部失败。
+
+# 仓库文档与工具：统一 LF，便于跨平台协作
+/README.md        text eol=lf
+/README.en.md     text eol=lf
+/LICENSE          text eol=lf
+/CONTRIBUTING.md  text eol=lf
+/CHANGELOG.md     text eol=lf
+/docs/**          text eol=lf
+/tools/**         text eol=lf
+/.github/**       text eol=lf
+
+# 二进制与归档
+*.png  binary
+*.jpg  binary
+*.zip  binary
+*.pdf  binary
+*.xlsx binary
+
+# 技能包：一律不做换行转换，保字节
+skills/** -text

@@ -1,0 +1,38 @@
+{
+  "version": "V9",
+  "generated": "2026-11-06",
+  "files": {
+    "assets/workbench/不良ABS多行工作台_策略与投资人回报_尊享版_V9.html": {
+      "sha256": "8ae21fd0266387ae9fde9b00ceecf432bcac4ed864eaf7a1e2e11a680d037593",
+      "bytes": 11385763
+    },
+    "assets/data/_rows_all.json": {
+      "sha256": "7afad4b63e260b1d237f5119b170a2521ef4bc9acee06b57e7778b4412bdd6cf",
+      "bytes": 75825
+    },
+    "assets/data/_rows.json": {
+      "sha256": "6f1285a55758f09bed17ce587980fc1103ea7e807ddf872a137ade73e4539964",
+      "bytes": 66151
+    },
+    "assets/source/v3.js": {
+      "sha256": "2489927056fd6d77900a8d461d5e12847381aaf3e57accbf18dedc4d9e0ca00d",
+      "bytes": 135512
+    },
+    "assets/source/v3.css": {
+      "sha256": "af6ca96b2a3dac329b07696a100c045b49b1f21f8c22c1d19954deaa97fb74ee",
+      "bytes": 35670
+    },
+    "assets/source/v3-extra.css": {
+      "sha256": "895b7d08a5d66c8ccb2178ecbd8ecc00566bf70cf28dc9d28ff79ad4a2e2c084",
+      "bytes": 19425
+    },
+    "assets/source/v3-gold.css": {
+      "sha256": "3d8bb68b608bfde3d65b97d7c7731f094495e67fd671e62b2f37acf761ed69d8",
+      "bytes": 11788
+    },
+    "assets/source/echarts.min.js": {
+      "sha256": "b66b25aeb4df84e33199dc21694014d336d222cbd9deb0e5a7c14bd6aa0d0fd0",
+      "bytes": 1121883
+    }
+  }
+}

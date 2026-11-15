@@ -1,0 +1,7 @@
+{
+  "version": "v11",
+  "sha256": "f5cc452903897f9348f9f4caae5c2fb126350d5881c3c2ce316eb81d692a39fb",
+  "bytes": 4013112,
+  "note": "由 skill scripts/v2/build_v2.py 确定性构建；环境 = Edge 同版本 + window-size 1600x1400",
+  "built_at": "2026-10-28T15:12:49"
+}
