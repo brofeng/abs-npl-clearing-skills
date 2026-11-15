@@ -90,10 +90,12 @@ chk("3", "按品种分组小图", h.count("xc-mini") >= 3 or "品种" in h, "")
 chk("5", "回收款去向分布已替代双渠道", ("去向" in h or "回收款" in h), "费用双渠道已并入 04 节")
 chk("7", "折线图重绘已注入", ("drawRecon" in h) and ("drawTranche" in h), "drawRecon/drawTranche")
 # ── v5：横向对照与「明细与底稿」拆为两个独立栏目 ──
+n_xc = h.count('data-view="xcompare"')
+n_ap = h.count('data-view="appendix"')
 chk("3", "★横向对照与底稿拆为两栏目",
-    h.count('data-view="xcompare"') == 1 and h.count('data-view="appendix"') == 1
+    n_xc == 1 and n_ap == 1
     and h.count('id="view-xcompare"') == 1 and h.count('id="view-appendix"') == 1,
-    f"xcompare {h.count('data-view=\"xcompare\"')} / appendix {h.count('data-view=\"appendix\"')}")
+    f"xcompare {n_xc} / appendix {n_ap}")
 chk("3", "折叠区引导语已删", "细粒度与可深挖的内容，默认收起" not in h, "")
 chk("3", "明细与底稿页头", "明细与底稿" in h, "")
 # ── v5：去技术化术语 / 终局性 / 总览文案 ──
@@ -843,7 +845,8 @@ title = ttl.group(1) if ttl else ""
 
 chk("8", "无运行时错误", not title.startswith("ERR:"), ("title 正常" if not title.startswith("ERR:") else title[:150]))
 chk("8", "真实 SVG ≥ 360", nos.count("<svg") >= 360, f"SVG {nos.count('<svg')}")
-chk("8", "视图 30 个（含合并页）", nos.count('class="view') >= 30, f"{nos.count('class=\"view')}")
+n_view_nos = nos.count('class="view')
+chk("8", "视图 30 个（含合并页）", n_view_nos >= 30, f"{n_view_nos}")
 # 「账户配平」只在源标记里；渲染后 DOM 必须已被 JS 清除
 chk("2|7", "渲染后无「账户配平」", nos.count("账户配平") == 0, f"源 {h.count('账户配平')} → 渲染 {nos.count('账户配平')}")
 

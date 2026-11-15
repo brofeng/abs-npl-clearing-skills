@@ -687,18 +687,22 @@ def svg_fc_scatter(ctx, W=860, H=410):
     for r in sorted(ctx.fc, key=lambda z: -z["issue"]):
         rad = _r_size(r["poolPrin"], ctx.pp_min, ctx.pp_max, 3.0, 15.0)
         st = "已披露" if (r["rec"] is not None and r["expRec"] is not None) else "缺失"
+        tip_lines = [
+            f'{r["bank"]} ／ {r["cat"]} ／ {r["year"]}',
+            f'预测回收率 {pct(r["expRec"])}',
+            f'实际回收率 {pct(r["rec"])}',
+            f'差异（实际 − 预测）{pp(r["diff"])}',
+            f'样本状态 {st}',
+        ]
         b.append(f'<circle class="xc-b" cx="{ax.X(r["expRec"]):.1f}" cy="{ax.Y(r["rec"]):.1f}" r="{rad:.1f}" '
                  f'fill="{CAT_COLOR.get(r["cat"], NAVY)}" data-cat="{esc(r["cat"])}" data-bank="{esc(r["bank"])}" '
                  f'data-view="{r["view"]}">'
-                 f'{tip(r["key"], [f"{r["bank"]} ／ {r["cat"]} ／ {r["year"]}",
-                                  f"预测回收率 {pct(r["expRec"])}",
-                                  f"实际回收率 {pct(r["rec"])}",
-                                  f"差异（实际 − 预测）{pp(r["diff"])}",
-                                  f"样本状态 {st}"])}</circle>')
+                 f'{tip(r["key"], tip_lines)}</circle>')
         if r["key"] in top5k:
+            extra = ["偏离最大 5 单之一", "差异 " + pp(r["diff"])]
             b.append(f'<circle cx="{ax.X(r["expRec"]):.1f}" cy="{ax.Y(r["rec"]):.1f}" r="{rad + 3.4:.1f}" '
                      f'fill="none" stroke="#A52524" stroke-width="1.5" opacity=".85">'
-                     f'{tip(r["key"], ["偏离最大 5 单之一", f"差异 {pp(r["diff"])}"])}</circle>')
+                     f'{tip(r["key"], extra)}</circle>')
     b.append(tx(656, 40, f'n={len(ctx.fc)}', "xc-lgttl"))
     b.append(tx(656, 58, f'r = {num(ctx.r_fc, 2)}', "xc-lgt"))
     b.append(tx(656, 76, f'比值中位 {num(ctx.mRatio, 2)}', "xc-lgt"))
@@ -846,12 +850,13 @@ def svg03_sub_dist(ctx, W=620, H=316):
         y = ax.y0 + pitch * i + pitch / 2
         b.append(f'<text x="{ax.x0 - 10}" y="{y + 4:.1f}" text-anchor="end" class="xc-rn">{esc(row["bank"])}</text>')
         for r in row["recs"]:
+            tip_lines = [f'{r["bank"]} ／ {r["cat"]}',
+                         f'次级档 XIRR {pct(r["xirrSub"])}',
+                         f'回报倍数 {num(r["subMultiple"], 3)}',
+                         "披露状态：已披露"]
             b.append(f'<circle cx="{ax.X(r["xirrSub"]):.1f}" cy="{y:.1f}" r="4.0" '
                      f'fill="{CAT_COLOR.get(r["cat"], NAVY)}" opacity=".82">'
-                     f'{tip(r["key"], [f'{r["bank"]} ／ {r["cat"]}',
-                                      f'次级档 XIRR {pct(r["xirrSub"])}',
-                                      f'回报倍数 {num(r["subMultiple"], 3)}',
-                                      "披露状态：已披露"])}</circle>')
+                     f'{tip(r["key"], tip_lines)}</circle>')
         b.append(f'<line x1="{ax.X(row["med"]):.1f}" y1="{y - 5:.1f}" x2="{ax.X(row["med"]):.1f}" y2="{y + 5:.1f}" '
                  f'stroke="{INK3}" stroke-width="1.6"/>')
     b.append(tx(104, 296, f'全样本 {pct(ctx.sub_min)}–{pct(ctx.sub_max)}，中位 {pct(ctx.sub_med)}，n={len(ctx.subAll)}',
@@ -1024,8 +1029,11 @@ def svg_pareto(ctx, W=560, H=420):
         cx = L + slot * (i + 0.5)
         y = ax.Y(r["share"])
         h = bot - y
+        fee_tip = ["金额 " + yi(r["v"]) + " 亿",
+                   "占费用合计 " + pct(r["share"]),
+                   "累计 " + pct(r["cum"])]
         b.append(f'<rect x="{cx - bw / 2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{max(1.0, h):.1f}" rx="2" fill="#8FA6C4">'
-                 f'{tip(r["label"], [f"金额 {yi(r["v"])} 亿", f"占费用合计 {pct(r["share"])}", f"累计 {pct(r["cum"])}"])}</rect>')
+                 f'{tip(r["label"], fee_tip)}</rect>')
         b.append(tx(cx, y - 6, pct(r["share"], 1), "xc-barval", "middle"))
         b.append(f'<text x="{cx:.1f}" y="{bot + 14}" text-anchor="start" '
                  f'transform="rotate(40 {cx:.1f} {bot + 14})" class="xc-tk">'

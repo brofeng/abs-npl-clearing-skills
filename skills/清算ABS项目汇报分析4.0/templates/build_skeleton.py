@@ -204,7 +204,9 @@ def main():
 
     OUT.write_text(h, encoding="utf-8")
     print(f"\n已生成：{OUT.name}  {OUT.stat().st_size:,} B")
-    print(f"  视图 {h.count('class=\"view\"')} 个（原 {orig.count('class=\"view\"')} + 新增 {len(views)}）")
+    n_view = h.count('class="view"')
+    n_orig = orig.count('class="view"')
+    print(f"  视图 {n_view} 个（原 {n_orig} + 新增 {len(views)}）")
     print(f"  CSS {len(''.join(css_parts)):,} 字符  JS {len(''.join(js_parts)):,} 字符")
     print(f"  侧栏新增 {len(nav)} 项：{nav}")
 

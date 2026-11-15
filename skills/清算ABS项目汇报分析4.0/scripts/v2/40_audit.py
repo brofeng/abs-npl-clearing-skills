@@ -1005,8 +1005,9 @@ def _selftest():
     ph_s = re.search(r'<p class="a-ph-s">([^<]*)</p>', html)
     print(f"    标题          {ph_t.group(1) if ph_t else '缺失'!r}")
     print(f"    一句话说明    {ph_s.group(1) if ph_s else '缺失'!r}")
-    print(f"    页头块数      {html.count('class=\"a-ph\"')}  [期望 1]  "
-          f"{'OK' if html.count('class=\"a-ph\"') == 1 else 'FAIL'}")
+    n_ph = html.count('class="a-ph"')
+    print(f"    页头块数      {n_ph}  [期望 1]  "
+          f"{'OK' if n_ph == 1 else 'FAIL'}")
     print(f"    无引导语      {'OK' if '折叠区 · 以下是细粒度' not in html else 'FAIL'}")
     print(f"    无 hero/导航  {'OK' if ('a-hero' not in html and 'a-idx' not in html) else 'FAIL'}")
     print()

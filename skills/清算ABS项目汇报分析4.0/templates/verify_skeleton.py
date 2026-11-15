@@ -117,8 +117,10 @@ def main():
     h = OUT.read_text(encoding="utf-8")
 
     # ── 静态断言（读源文件，约 1/3）──
-    chk("结构", "视图数 ≥ 30", h.count('class="view"') >= 30, f"{h.count('class=\"view\"')}")
-    chk("结构", "侧栏项 ≥ 4", h.count('class="sb-item"') >= 4, f"{h.count('class=\"sb-item\"')}")
+    n_view = h.count('class="view"')
+    n_sb = h.count('class="sb-item"')
+    chk("结构", "视图数 ≥ 30", n_view >= 30, f"{n_view}")
+    chk("结构", "侧栏项 ≥ 4", n_sb >= 4, f"{n_sb}")
     chk("口径", "无「折价率」", h.count("折价率") == 0, f"{h.count('折价率')} 次")
     chk("口径", "无「已终局」", h.count("已终局") == 0, f"{h.count('已终局')} 次")
     chk("口径", "无内部编码", all(h.count(k) == 0 for k in
