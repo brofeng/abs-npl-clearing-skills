@@ -1,5 +1,9 @@
 # NPL ABS Clearing Analysis — Agent Skills
 
+![validate](https://github.com/brofeng/abs-npl-clearing-skills/actions/workflows/ci.yml/badge.svg)
+
+> **Live demo**: <https://brofeng.github.io/abs-npl-clearing-skills/> — the 74-deal workbench, opens in the browser, no install.
+
 > Turn disclosed Chinese interbank NPL securitisation documents (prospectus, trustee report,
 > liquidation report, rating report) into **reproducible, gated, deliverable** deal-level
 > deep-dive reports and multi-deal workbenches.

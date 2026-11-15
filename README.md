@@ -1,5 +1,9 @@
 # 清算期不良 ABS 穿透分析 · 双技能
 
+![validate](https://github.com/brofeng/abs-npl-clearing-skills/actions/workflows/ci.yml/badge.svg)
+
+> **在线预览**：<https://brofeng.github.io/abs-npl-clearing-skills/> —— 74 单交互工作台，点开即用，不用安装。
+
 > 把银行间市场披露的清算期不良 ABS 文档（说明书 / 受托报告 / 清算报告 / 评级报告），
 > 变成**可复刻、可验收、可交付**的单项目穿透报告与多单工作台。
 >
